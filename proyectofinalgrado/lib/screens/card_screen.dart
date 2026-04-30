@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/swipe_card.dart';
+import '../widgets/stats_panel.dart';
+import '../state/stats_controller.dart';
 
 // Las tres fases posibles de la carta en cada momento:
 // - idle    → el usuario puede arrastrarla libremente
@@ -15,6 +17,7 @@ class CardScreen extends StatefulWidget {
 }
 
 class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
+  final _stats = StatsController(vida: 0.5, experiencia: 0.9, nivel: 0.9, fuerza: 0.9);
   // Desplazamiento horizontal acumulado mientras el usuario arrastra
   double _x = 0;
   // Fase actual de la carta (controla qué se muestra en el build)
@@ -128,64 +131,83 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      body: Center(
-        child: GestureDetector(
-          //mientras hay animación, desactivamos el gesto poniendo null
-          onPanUpdate: _phase != _Phase.idle
-              ? null
-              : (d) => setState(() => _x += d.delta.dx),
+      body: Stack(
+        children: [
+          Center(
+            child: GestureDetector(
+              //mientras hay animación, desactivamos el gesto poniendo null
+              onPanUpdate: _phase != _Phase.idle
+                  ? null
+                  : (d) => setState(() => _x += d.delta.dx),
 
-          //al soltar el dedo: swipe si superó el umbral, volver al centro si no
-          onPanEnd: _phase != _Phase.idle
-              ? null
-              : (_) =>
-                    _x.abs() >= _threshold ? _swipe() : setState(() => _x = 0),
+              //al soltar el dedo: swipe si superó el umbral, volver al centro si no
+              onPanEnd: _phase != _Phase.idle
+                  ? null
+                  : (_) => _x.abs() >= _threshold
+                        ? _swipe()
+                        : setState(() => _x = 0),
 
-          //mostramos un widget distinto según la fase actual
-          child: switch (_phase) {
-            //cambio de fase de la carta
+              //mostramos un widget distinto según la fase actual
+              child: switch (_phase) {
+                //cambio de fase de la carta
 
-            //reposo: la carta sigue al dedo y rota ligeramente
-            _Phase.idle => Transform.translate(
-              offset: Offset(_x, 130.0),
-              child: Transform.rotate(
-                //La rotación máxima es ±0.3 rad (~17°) al llegar al borde
-                angle: (_x / (_screenWidth * 0.6)).clamp(-1.0, 1.0) * 0.3,
-                child: card,
-              ),
-            ),
-
-            //salida: la carta vuela con rotación
-
-            // Busca esto dentro del switch (_phase)
-            _Phase.exiting => AnimatedBuilder(
-              animation: _exitCtrl,
-              child: card,
-              builder: (_, child) => Transform.translate(
-                // Usamos el offset completo de la animación de salida
-                // Sumamos 175.0 al eje Y para mantener la altura base que elegiste
-                offset: _exitOffset.value + const Offset(0, 130.0),
-                child: Transform.rotate(angle: _exitRot.value, child: child),
-              ),
-            ),
-
-            //entrada: la carta nueva sube, crece y aparece
-            _Phase.entering => AnimatedBuilder(
-              animation: _enterCtrl,
-              child: card,
-              builder: (_, child) => Opacity(
-                opacity: _enterOpacity.value,
-                child: Transform.translate(
-                  offset: Offset(0, _enterY.value + 130.0),
-                  child: Transform.scale(
-                    scale: _enterScale.value,
-                    child: child,
+                //reposo: la carta sigue al dedo y rota ligeramente
+                _Phase.idle => Transform.translate(
+                  offset: Offset(_x, 130.0),
+                  child: Transform.rotate(
+                    //La rotación máxima es ±0.3 rad (~17°) al llegar al borde
+                    angle: (_x / (_screenWidth * 0.6)).clamp(-1.0, 1.0) * 0.3,
+                    child: card,
                   ),
                 ),
-              ),
+
+                //salida: la carta vuela con rotación
+
+                // Busca esto dentro del switch (_phase)
+                _Phase.exiting => AnimatedBuilder(
+                  animation: _exitCtrl,
+                  child: card,
+                  builder: (_, child) => Transform.translate(
+                    // Usamos el offset completo de la animación de salida
+                    // Sumamos 175.0 al eje Y para mantener la altura base que elegiste
+                    offset: _exitOffset.value + const Offset(0, 130.0),
+                    child: Transform.rotate(
+                      angle: _exitRot.value,
+                      child: child,
+                    ),
+                  ),
+                ),
+
+                //entrada: la carta nueva sube, crece y aparece
+                _Phase.entering => AnimatedBuilder(
+                  animation: _enterCtrl,
+                  child: card,
+                  builder: (_, child) => Opacity(
+                    opacity: _enterOpacity.value,
+                    child: Transform.translate(
+                      offset: Offset(0, _enterY.value + 130.0),
+                      child: Transform.scale(
+                        scale: _enterScale.value,
+                        child: child,
+                      ),
+                    ),
+                  ),
+                ),
+              }, //
             ),
-          }, //
-        ),
+          ),
+
+          // Panel de estadísticas en la parte inferior
+          Align(
+            alignment: Alignment.topCenter,
+            child: StatsPanel(
+              vida: _stats.vida,
+              experiencia: _stats.experiencia,
+              nivel: _stats.nivel,
+              fuerza: _stats.fuerza,
+            ),
+          ),
+        ],
       ),
     );
   }
