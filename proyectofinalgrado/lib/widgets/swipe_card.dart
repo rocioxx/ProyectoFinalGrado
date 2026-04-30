@@ -12,7 +12,7 @@ class SwipeCard extends StatelessWidget {
       width: 350, //ancho de la carta
       height: 400, //alto de la carta
       decoration: BoxDecoration(
-        color: Colors.white, //color blanco
+        color: const Color.fromARGB(185, 255, 255, 255), //color blanco
         borderRadius: BorderRadius.circular(16), // esquinas redondeadas
         boxShadow: const [
           // Sombra suave para dar sensación de profundidad

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/swipe_card.dart';
 import '../widgets/stats_panel.dart';
 import '../state/stats_controller.dart';
+import '../widgets/missions_panel.dart';
 
 // Las tres fases posibles de la carta en cada momento:
 // - idle    → el usuario puede arrastrarla libremente
@@ -17,7 +18,13 @@ class CardScreen extends StatefulWidget {
 }
 
 class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
-  final _stats = StatsController(vida: 0.5, experiencia: 0.9, nivel: 0.9, fuerza: 0.9);
+  final _stats = StatsController(
+    vida: 0.5,
+    experiencia: 0.9,
+    nivel: 0.9,
+    fuerza: 0.9,
+  );
+
   // Desplazamiento horizontal acumulado mientras el usuario arrastra
   double _x = 0;
   // Fase actual de la carta (controla qué se muestra en el build)
@@ -130,7 +137,7 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
     const card = SwipeCard();
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: const Color.fromARGB(255, 29, 20, 13),
       body: Stack(
         children: [
           Center(
@@ -207,6 +214,9 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
               fuerza: _stats.fuerza,
             ),
           ),
+
+          // Botón de misiones arriba a la derecha (encima del StatsPanel)
+          Positioned(top: 48, right: 16, child: const MissionsPanel()),
         ],
       ),
     );

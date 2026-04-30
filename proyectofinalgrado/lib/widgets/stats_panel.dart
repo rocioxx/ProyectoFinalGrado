@@ -19,7 +19,7 @@ class StatsPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 50),
       decoration: const BoxDecoration(
-        color: Color.fromARGB(200, 235, 235, 235),
+        color: Color.fromARGB(255, 29, 20, 13),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Row(
@@ -33,7 +33,7 @@ class StatsPanel extends StatelessWidget {
           ),
           _StatBar(
             label: 'Nivel',
-            color: const Color(0xFFAAAAAA),
+            color: const Color.fromARGB(255, 90, 89, 89),
             value: nivel,
           ),
           _StatBar(
@@ -66,7 +66,7 @@ class _StatBar extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            color: Color.fromARGB(179, 0, 0, 0),
+            color: Color.fromARGB(179, 255, 255, 255),
             fontSize: 11,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.5,
@@ -81,7 +81,7 @@ class _StatBar extends StatelessWidget {
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: [
-                Container(color: const Color(0xFF333333)),
+                Container(color: const Color.fromARGB(179, 255, 255, 255)),
                 FractionallySizedBox(
                   heightFactor: value.clamp(0.0, 1.0),
                   child: Container(color: color),
