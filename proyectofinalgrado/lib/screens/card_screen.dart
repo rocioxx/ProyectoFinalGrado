@@ -17,31 +17,24 @@ class CardScreen extends StatefulWidget {
 class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
   // Desplazamiento horizontal acumulado mientras el usuario arrastra
   double _x = 0;
-
   // Fase actual de la carta (controla qué se muestra en el build)
   _Phase _phase = _Phase.idle;
-
   // Ancho de pantalla guardado en build() para usarlo en _swipe(),
   // donde no tenemos acceso directo a BuildContext
   double _screenWidth = 1;
-
   // Controlador de la animación de salida (la carta vuela hacia un lado)
   late final AnimationController _exitCtrl;
-
   // Controlador de la animación de entrada (la carta nueva aparece)
   late final AnimationController _enterCtrl;
-
   // Animaciones de entrada: escala, opacidad y posición vertical
   // Se crean una sola vez en initState() porque sus extremos no cambian
   late final Animation<double> _enterScale;
   late final Animation<double> _enterOpacity;
   late final Animation<double> _enterY;
-
   // Animaciones de salida: posición y rotación
   // Se recrean en cada swipe porque dependen de _x en ese instante
   late Animation<Offset> _exitOffset;
   late Animation<double> _exitRot;
-
   // Distancia mínima en píxeles para que se considere un swipe válido
   static const _threshold = 100.0;
 
@@ -99,7 +92,7 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
     // con un pequeño movimiento hacia arriba (-50 px en Y)
     _exitOffset = Tween<Offset>(
       begin: Offset(startX, 0),
-      end: Offset(startX + dir * _screenWidth * 1.5, -50),
+      end: Offset(startX + dir * _screenWidth * 2, 0),
     ).animate(CurvedAnimation(parent: _exitCtrl, curve: Curves.easeIn));
 
     // La rotación parte del ángulo actual y se exagera en la dirección del swipe
@@ -137,50 +130,53 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
       backgroundColor: Colors.grey[200],
       body: Center(
         child: GestureDetector(
-          // Mientras hay animación, desactivamos el gesto poniendo null
+          //mientras hay animación, desactivamos el gesto poniendo null
           onPanUpdate: _phase != _Phase.idle
               ? null
               : (d) => setState(() => _x += d.delta.dx),
 
-          // Al soltar el dedo: swipe si superó el umbral, volver al centro si no
+          //al soltar el dedo: swipe si superó el umbral, volver al centro si no
           onPanEnd: _phase != _Phase.idle
               ? null
               : (_) =>
                     _x.abs() >= _threshold ? _swipe() : setState(() => _x = 0),
 
-          // Mostramos un widget distinto según la fase actual
+          //mostramos un widget distinto según la fase actual
           child: switch (_phase) {
             //cambio de fase de la carta
 
-            // ── Reposo: la carta sigue al dedo y rota ligeramente ────────────
+            //reposo: la carta sigue al dedo y rota ligeramente
             _Phase.idle => Transform.translate(
-              offset: Offset(_x, 0),
+              offset: Offset(_x, 130.0),
               child: Transform.rotate(
-                // La rotación máxima es ±0.3 rad (~17°) al llegar al borde
+                //La rotación máxima es ±0.3 rad (~17°) al llegar al borde
                 angle: (_x / (_screenWidth * 0.6)).clamp(-1.0, 1.0) * 0.3,
                 child: card,
               ),
             ),
 
-            // ── Salida: la carta vuela con rotación ──────────────────────────
-            // AnimatedBuilder solo reconstruye los Transform, no SwipeCard
+            //salida: la carta vuela con rotación
+
+            // Busca esto dentro del switch (_phase)
             _Phase.exiting => AnimatedBuilder(
               animation: _exitCtrl,
               child: card,
               builder: (_, child) => Transform.translate(
-                offset: _exitOffset.value,
+                // Usamos el offset completo de la animación de salida
+                // Sumamos 175.0 al eje Y para mantener la altura base que elegiste
+                offset: _exitOffset.value + const Offset(0, 130.0),
                 child: Transform.rotate(angle: _exitRot.value, child: child),
               ),
             ),
 
-            // ── Entrada: la carta nueva sube, crece y aparece ────────────────
+            //entrada: la carta nueva sube, crece y aparece
             _Phase.entering => AnimatedBuilder(
               animation: _enterCtrl,
               child: card,
               builder: (_, child) => Opacity(
                 opacity: _enterOpacity.value,
                 child: Transform.translate(
-                  offset: Offset(0, _enterY.value),
+                  offset: Offset(0, _enterY.value + 130.0),
                   child: Transform.scale(
                     scale: _enterScale.value,
                     child: child,
@@ -188,7 +184,7 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
                 ),
               ),
             ),
-          },
+          }, //
         ),
       ),
     );

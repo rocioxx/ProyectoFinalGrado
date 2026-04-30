@@ -9,14 +9,14 @@ class SwipeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
-      height: 320,
+      width: 350, //ancho de la carta
+      height: 400, //alto de la carta
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white, //color blanco
         borderRadius: BorderRadius.circular(16), // esquinas redondeadas
         boxShadow: const [
           // Sombra suave para dar sensación de profundidad
-          BoxShadow(color: Colors.black26, blurRadius: 10),
+          BoxShadow(color: Colors.black, blurRadius: 10),
         ],
       ),
     );
