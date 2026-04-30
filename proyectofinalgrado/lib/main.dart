@@ -4,7 +4,7 @@ import 'screens/card_screen.dart';
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key}); //constructor de la clase padre
 
   @override
   Widget build(BuildContext context) {
