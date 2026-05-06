@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/swipe_card.dart';
 import '../widgets/stats_panel.dart';
+import '../widgets/scenario_text.dart';
+import '../models/scenario.dart';
 import '../state/stats_controller.dart';
 import '../widgets/missions_panel.dart';
 
@@ -25,6 +27,9 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
     fuerza: 0.9,
   );
 
+  int _scenarioIndex = 0;
+  double _screenHeight = 1;
+
   // Desplazamiento horizontal acumulado mientras el usuario arrastra
   double _x = 0;
   // Fase actual de la carta (controla qué se muestra en el build)
@@ -45,8 +50,9 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
   // Se recrean en cada swipe porque dependen de _x en ese instante
   late Animation<Offset> _exitOffset;
   late Animation<double> _exitRot;
+
   // Distancia mínima en píxeles para que se considere un swipe válido
-  static const _threshold = 100.0;
+  static const _threshold = 80.0;
 
   @override
   void initState() {
@@ -81,6 +87,7 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
       begin: 40.0,
       end: 0.0,
     ).animate(CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOutCubic));
+
   }
 
   @override
@@ -124,14 +131,19 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
     await _enterCtrl.forward(from: 0); // esperamos a que termine la entrada
     _enterCtrl.reset();
 
-    // Volvemos a idle para que el usuario pueda arrastrar de nuevo
-    setState(() => _phase = _Phase.idle);
+    // Volvemos a idle y avanzamos al siguiente escenario
+    setState(() {
+      _phase = _Phase.idle;
+      _scenarioIndex = (_scenarioIndex + 1) % escenarios.length;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Guardamos el ancho aquí porque los callbacks no tienen BuildContext
-    _screenWidth = MediaQuery.sizeOf(context).width;
+    // Guardamos dimensiones aquí porque los callbacks no tienen BuildContext
+    final size = MediaQuery.sizeOf(context);
+    _screenWidth = size.width;
+    _screenHeight = size.height;
 
     // SwipeCard es const: Flutter lo reutiliza sin reconstruirlo
     const card = SwipeCard();
@@ -201,6 +213,18 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
                   ),
                 ),
               }, //
+            ),
+          ),
+
+          // Texto del escenario encima de la carta
+          Positioned(
+            left: 32,
+            right: 32,
+            top: _screenHeight * 0.33,
+            child: ScenarioText(
+              scenario: escenarios[_scenarioIndex],
+              dragX: _phase == _Phase.idle ? _x : 0,
+              threshold: _threshold,
             ),
           ),
 
