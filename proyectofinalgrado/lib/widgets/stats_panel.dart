@@ -4,15 +4,16 @@ class StatsPanel extends StatelessWidget {
   const StatsPanel({
     super.key,
     required this.vida,
-    required this.experiencia,
-    required this.nivel,
-    required this.fuerza,
+    required this.poder,
+    required this.tiempo,
+    required this.suerte,
   });
 
+  // Todas las estadísticas están en rango 0–100
   final double vida;
-  final double experiencia;
-  final double nivel;
-  final double fuerza;
+  final double poder;
+  final double tiempo;
+  final double suerte;
 
   @override
   Widget build(BuildContext context) {
@@ -27,19 +28,19 @@ class StatsPanel extends StatelessWidget {
         children: [
           _StatBar(label: 'Vida', color: const Color(0xFFE8706A), value: vida),
           _StatBar(
-            label: 'Exp',
+            label: 'Poder',
+            color: const Color(0xFFE85D04),
+            value: poder,
+          ),
+          _StatBar(
+            label: 'Tiempo',
             color: const Color(0xFF5B9BD5),
-            value: experiencia,
+            value: tiempo,
           ),
           _StatBar(
-            label: 'Nivel',
-            color: const Color.fromARGB(255, 90, 89, 89),
-            value: nivel,
-          ),
-          _StatBar(
-            label: 'Fuerza',
-            color: const Color(0xFFD4AF37),
-            value: fuerza,
+            label: 'Suerte',
+            color: const Color(0xFF95D44A),
+            value: suerte,
           ),
         ],
       ),
@@ -67,23 +68,23 @@ class _StatBar extends StatelessWidget {
           label,
           style: const TextStyle(
             color: Color.fromARGB(179, 255, 255, 255),
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(6),
           child: SizedBox(
-            width: 10,
-            height: 80,
+            width: 16,
+            height: 120,
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: [
                 Container(color: const Color.fromARGB(179, 255, 255, 255)),
                 FractionallySizedBox(
-                  heightFactor: value.clamp(0.0, 1.0),
+                  heightFactor: (value / 100).clamp(0.0, 1.0),
                   child: Container(color: color),
                 ),
               ],

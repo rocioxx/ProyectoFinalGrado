@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../models/scenario.dart';
+import '../models/carta.dart';
 
 class ScenarioText extends StatelessWidget {
   const ScenarioText({
     super.key,
-    required this.scenario,
+    required this.carta,
     required this.dragX,
     required this.threshold,
   });
 
-  final Scenario scenario;
+  final Carta carta;
   final double dragX; // valor actual de _x (0 cuando no se arrastra)
   final double threshold; // mínimo para considerar swipe válido
 
@@ -20,8 +20,8 @@ class ScenarioText extends StatelessWidget {
     final isLeft = dragX < 0;
 
     final choiceText = isLeft
-        ? scenario.opcionIzquierda
-        : scenario.opcionDerecha;
+        ? carta.opcionIzquierda
+        : carta.opcionDerecha;
     final choiceColor = isLeft
         ? const Color(0xFF6BCB77)
         : const Color(0xFF6BCB77);
@@ -33,7 +33,7 @@ class ScenarioText extends StatelessWidget {
         Opacity(
           opacity: 1.0 - progress,
           child: Text(
-            scenario.texto,
+            carta.texto,
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: 'Lora',
