@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'card_screen.dart';
+import 'login_screen.dart';
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({super.key});
@@ -12,7 +12,7 @@ class PlayScreen extends StatelessWidget {
         child: GestureDetector(
           onTap: () => Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const CardScreen()),
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
           ),
           child: Container(
             width: 100,

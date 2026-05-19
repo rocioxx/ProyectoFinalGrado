@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/play_screen.dart';
 
-void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url:
+        'https://qatjobztluikjbapbvgv.supabase.co', // ← pega aquí tu Project URL
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhdGpvYnp0bHVpa2piYXBidmd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMDU0MjcsImV4cCI6MjA5NDc4MTQyN30.6ogTjmDSBNifaxLWCFMXo2bpv3fXzGg-3h2e0mrvDj8', // ← pega aquí tu anon/public key
+  );
+
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
