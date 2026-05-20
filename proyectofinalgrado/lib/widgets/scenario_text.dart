@@ -36,7 +36,7 @@ class ScenarioText extends StatelessWidget {
             carta.texto,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontFamily: 'Lora',
+              fontFamily: 'Inconsolata',
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color.fromARGB(221, 255, 255, 255),
@@ -52,7 +52,7 @@ class ScenarioText extends StatelessWidget {
               choiceText,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'Lora',
+                fontFamily: 'Inconsolata',
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: choiceColor,

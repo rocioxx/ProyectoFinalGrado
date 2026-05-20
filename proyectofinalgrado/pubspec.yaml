@@ -59,10 +59,24 @@ flutter:
   uses-material-design: true
 
   fonts:
-    - family: Lora
+    - family: Inconsolata
       fonts:
-        - asset: lib/fonts/Lora-SemiBold.ttf
+        - asset: lib/fonts/Inconsolata-ExtraLight.ttf
+          weight: 200
+        - asset: lib/fonts/Inconsolata-Light.ttf
+          weight: 300
+        - asset: lib/fonts/Inconsolata-Regular.ttf
+          weight: 400
+        - asset: lib/fonts/Inconsolata-Medium.ttf
+          weight: 500
+        - asset: lib/fonts/Inconsolata-SemiBold.ttf
           weight: 600
+        - asset: lib/fonts/Inconsolata-Bold.ttf
+          weight: 700
+        - asset: lib/fonts/Inconsolata-ExtraBold.ttf
+          weight: 800
+        - asset: lib/fonts/Inconsolata-Black.ttf
+          weight: 900
 
   # To add assets to your application, add an assets section, like this:
   # assets:

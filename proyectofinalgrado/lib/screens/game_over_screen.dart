@@ -16,7 +16,7 @@ class GameOverScreen extends StatelessWidget {
             const Text(
               'GAME OVER',
               style: TextStyle(
-                fontFamily: 'Lora',
+                fontFamily: 'Inconsolata',
                 fontSize: 42,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFFE8706A),
@@ -65,7 +65,7 @@ class _MenuButton extends StatelessWidget {
           label,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontFamily: 'Lora',
+            fontFamily: 'Inconsolata',
             fontSize: 16,
             color: Color.fromARGB(200, 255, 255, 255),
             letterSpacing: 1,
