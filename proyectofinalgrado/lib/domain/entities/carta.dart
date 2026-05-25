@@ -1,5 +1,5 @@
-import 'game_state.dart';
 import 'consecuencia.dart';
+import 'game_state.dart';
 
 typedef EfectoCarta = Consecuencia Function(GameState estado);
 
@@ -10,7 +10,7 @@ class Carta {
     required this.opcionDerecha,
     required this.efectoIzquierda,
     required this.efectoDerecha,
-    this.condicion, // null = siempre disponible en el pool
+    this.condicion,
   });
 
   final String texto;
@@ -18,8 +18,5 @@ class Carta {
   final String opcionDerecha;
   final EfectoCarta efectoIzquierda;
   final EfectoCarta efectoDerecha;
-
-  // Si está definida, la carta solo entra al pool cuando devuelve true.
-  // Permite cartas que solo aparecen bajo ciertas condiciones (flags, objetos...).
   final bool Function(GameState)? condicion;
 }

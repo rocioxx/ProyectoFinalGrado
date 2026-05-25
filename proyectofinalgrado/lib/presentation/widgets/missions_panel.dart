@@ -9,12 +9,11 @@ class MissionsPanel extends StatefulWidget {
 
 class _MissionsPanelState extends State<MissionsPanel>
     with SingleTickerProviderStateMixin {
-  bool _expanded = false; //variable que indica si el panel esta expandido o no
-  late final AnimationController _ctrl; //controlador de la animacion
-  late final Animation<double> _fadeAnim; //animacion de desvanecimiento
+  bool _expanded = false;
+  late final AnimationController _ctrl;
+  late final Animation<double> _fadeAnim;
 
   static const _misiones = [
-    //aqui van todas las misiones del juego
     _Mision(titulo: 'Derrotar al jefe final', completada: false),
     _Mision(titulo: 'Recoger 1 poción', completada: false),
     _Mision(titulo: 'Explorar la mazmorra', completada: false),
@@ -33,13 +32,11 @@ class _MissionsPanelState extends State<MissionsPanel>
 
   @override
   void dispose() {
-    //funcion que libera los recursos del controlador
     _ctrl.dispose();
     super.dispose();
   }
 
   void _toggle() {
-    //funcion que cambia el valor de _expanded y ejecuta la animacion
     setState(() => _expanded = !_expanded);
     _expanded ? _ctrl.forward() : _ctrl.reverse();
   }
@@ -50,7 +47,6 @@ class _MissionsPanelState extends State<MissionsPanel>
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Botón con el icono de misiones
         GestureDetector(
           onTap: _toggle,
           child: Container(
@@ -66,16 +62,12 @@ class _MissionsPanelState extends State<MissionsPanel>
             ),
           ),
         ),
-
-        // Panel desplegable con las misiones
         AnimatedSize(
-          //duracion de la animacion y que tipo de animacion es y donde se posiciona
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOut,
           alignment: Alignment.topCenter,
           child: _expanded
               ? FadeTransition(
-                  //el ? es como un if y el : es como un else
                   opacity: _fadeAnim,
                   child: Container(
                     margin: const EdgeInsets.only(top: 6),
@@ -84,13 +76,10 @@ class _MissionsPanelState extends State<MissionsPanel>
                       color: const Color(0xFF1A1A1A),
                       borderRadius: BorderRadius.circular(12),
                     ),
-
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize
-                          .min, //que ocupe el minimo espacio posible
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        //lista de widgets
                         const Padding(
                           padding: EdgeInsets.fromLTRB(14, 12, 14, 6),
                           child: Text(
@@ -104,9 +93,7 @@ class _MissionsPanelState extends State<MissionsPanel>
                           ),
                         ),
                         const Divider(color: Color(0xFF333333), height: 1),
-                        ..._misiones.map(
-                          (m) => _MisionTile(mision: m),
-                        ), //... es para poder mostrar todas las misiones y que no se choquen con el statspanel
+                        ..._misiones.map((m) => _MisionTile(mision: m)),
                         const SizedBox(height: 6),
                       ],
                     ),

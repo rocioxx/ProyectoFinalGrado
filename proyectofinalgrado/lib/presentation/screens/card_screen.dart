@@ -1,40 +1,63 @@
 import 'package:flutter/material.dart';
-import '../widgets/swipe_card.dart';
-import '../widgets/stats_panel.dart';
-import '../widgets/scenario_text.dart';
-import '../models/carta.dart';
-import '../models/game_state.dart';
-import '../state/game_controller.dart';
-import '../data/card_pool.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/repositories/game_repository_impl.dart';
+import '../../domain/entities/carta.dart';
+import '../../domain/usecases/apply_decision_usecase.dart';
+import '../../domain/usecases/draw_card_usecase.dart';
+import '../cubits/game_cubit.dart';
+import '../cubits/game_ui_state.dart';
 import '../widgets/missions_panel.dart';
+import '../widgets/scenario_text.dart';
+import '../widgets/stats_panel.dart';
+import '../widgets/swipe_card.dart';
 import 'game_over_screen.dart';
+import 'win_screen.dart';
 
-enum _Phase { idle, exiting, entering, returning }
-
-class CardScreen extends StatefulWidget {
+class CardScreen extends StatelessWidget {
   const CardScreen({super.key});
 
   @override
-  State<CardScreen> createState() => _CardScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) {
+        final repo = GameRepositoryImpl();
+        return GameCubit(
+          drawCard: DrawCardUseCase(repo),
+          applyDecision: ApplyDecisionUseCase(repo),
+        );
+      },
+      child: const _CardView(),
+    );
+  }
 }
 
-class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
-  final _state = GameState();
+// ── View (animations + gestures) ─────────────────────────────────────────────
+
+enum _Phase { idle, exiting, entering, returning }
+
+class _CardView extends StatefulWidget {
+  const _CardView();
+
+  @override
+  State<_CardView> createState() => _CardViewState();
+}
+
+class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
   late Carta _cartaActual;
 
   double _screenHeight = 1;
+  double _screenWidth = 1;
   double _x = 0;
   _Phase _phase = _Phase.idle;
-  double _screenWidth = 1;
 
   late final AnimationController _exitCtrl;
   late final AnimationController _enterCtrl;
+  late final AnimationController _returnCtrl;
   late final Animation<double> _enterScale;
   late final Animation<double> _enterOpacity;
   late final Animation<double> _enterY;
   late Animation<Offset> _exitOffset;
   late Animation<double> _exitRot;
-  late final AnimationController _returnCtrl;
   late Animation<double> _returnAnim;
 
   static const _threshold = 80.0;
@@ -42,7 +65,8 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _cartaActual = nextCarta(_state);
+    final initialState = context.read<GameCubit>().state as GamePlaying;
+    _cartaActual = initialState.cartaActual;
 
     _exitCtrl = AnimationController(
       vsync: this,
@@ -91,6 +115,7 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
   Future<void> _swipe() async {
     final eligioIzquierda = _x < 0;
     final cartaActual = _cartaActual;
+    final cubit = context.read<GameCubit>();
 
     final dir = _x.sign;
     final startX = _x;
@@ -110,30 +135,37 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
     await _exitCtrl.forward(from: 0);
     _exitCtrl.reset();
 
-    aplicarDecision(_state, cartaActual, eligioIzquierda);
+    cubit.applyDecision(cartaActual, eligioIzquierda);
 
-    if (_state.vida <= 0 ||
-        _state.suerte <= 0 ||
-        _state.tiempo <= 0 ||
-        _state.poder <= 0) {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const GameOverScreen()),
-        );
-      }
+    if (!mounted) return;
+
+    final newState = cubit.state;
+
+    if (newState is GameVictoryState) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const WinScreen()),
+      );
       return;
     }
 
+    if (newState is GameOverState) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const GameOverScreen()),
+      );
+      return;
+    }
+
+    final playing = newState as GamePlaying;
     setState(() {
       _x = 0;
       _phase = _Phase.entering;
-      _cartaActual = nextCarta(_state); // siguiente carta ya preparada
+      _cartaActual = playing.cartaActual;
     });
 
     await _enterCtrl.forward(from: 0);
     _enterCtrl.reset();
-
     setState(() => _phase = _Phase.idle);
   }
 
@@ -157,53 +189,54 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
               onPanEnd: _phase != _Phase.idle
                   ? null
                   : (_) =>
-                        _x.abs() >= _threshold ? _swipe() : _returnToCenter(),
+                      _x.abs() >= _threshold ? _swipe() : _returnToCenter(),
               child: switch (_phase) {
                 _Phase.idle => Transform.translate(
-                  offset: Offset(_x, 130.0),
-                  child: Transform.rotate(
-                    angle: (_x / (_screenWidth * 0.6)).clamp(-1.0, 1.0) * 0.3,
-                    child: card,
+                    offset: Offset(_x, 130.0),
+                    child: Transform.rotate(
+                      angle:
+                          (_x / (_screenWidth * 0.6)).clamp(-1.0, 1.0) * 0.3,
+                      child: card,
+                    ),
                   ),
-                ),
                 _Phase.exiting => AnimatedBuilder(
-                  animation: _exitCtrl,
-                  child: card,
-                  builder: (_, child) => Transform.translate(
-                    offset: _exitOffset.value + const Offset(0, 130.0),
-                    child: Transform.rotate(
-                      angle: _exitRot.value,
-                      child: child,
-                    ),
-                  ),
-                ),
-                _Phase.returning => AnimatedBuilder(
-                  animation: _returnCtrl,
-                  child: card,
-                  builder: (_, child) => Transform.translate(
-                    offset: Offset(_returnAnim.value, 130.0),
-                    child: Transform.rotate(
-                      angle: (_returnAnim.value / (_screenWidth * 0.6))
-                              .clamp(-1.0, 1.0) *
-                          0.3,
-                      child: child,
-                    ),
-                  ),
-                ),
-                _Phase.entering => AnimatedBuilder(
-                  animation: _enterCtrl,
-                  child: card,
-                  builder: (_, child) => Opacity(
-                    opacity: _enterOpacity.value,
-                    child: Transform.translate(
-                      offset: Offset(0, _enterY.value + 130.0),
-                      child: Transform.scale(
-                        scale: _enterScale.value,
+                    animation: _exitCtrl,
+                    child: card,
+                    builder: (_, child) => Transform.translate(
+                      offset: _exitOffset.value + const Offset(0, 130.0),
+                      child: Transform.rotate(
+                        angle: _exitRot.value,
                         child: child,
                       ),
                     ),
                   ),
-                ),
+                _Phase.returning => AnimatedBuilder(
+                    animation: _returnCtrl,
+                    child: card,
+                    builder: (_, child) => Transform.translate(
+                      offset: Offset(_returnAnim.value, 130.0),
+                      child: Transform.rotate(
+                        angle: (_returnAnim.value / (_screenWidth * 0.6))
+                                .clamp(-1.0, 1.0) *
+                            0.3,
+                        child: child,
+                      ),
+                    ),
+                  ),
+                _Phase.entering => AnimatedBuilder(
+                    animation: _enterCtrl,
+                    child: card,
+                    builder: (_, child) => Opacity(
+                      opacity: _enterOpacity.value,
+                      child: Transform.translate(
+                        offset: Offset(0, _enterY.value + 130.0),
+                        child: Transform.scale(
+                          scale: _enterScale.value,
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ),
               },
             ),
           ),
@@ -221,15 +254,21 @@ class _CardScreenState extends State<CardScreen> with TickerProviderStateMixin {
 
           Align(
             alignment: Alignment.topCenter,
-            child: StatsPanel(
-              vida: _state.vida,
-              poder: _state.poder,
-              tiempo: _state.tiempo,
-              suerte: _state.suerte,
+            child: BlocBuilder<GameCubit, GameUiState>(
+              buildWhen: (_, s) => s is GamePlaying,
+              builder: (_, state) {
+                final gs = (state as GamePlaying).gameState;
+                return StatsPanel(
+                  vida: gs.vida,
+                  poder: gs.poder,
+                  tiempo: gs.tiempo,
+                  suerte: gs.suerte,
+                );
+              },
             ),
           ),
 
-          Positioned(top: 48, right: 16, child: const MissionsPanel()),
+          const Positioned(top: 48, right: 16, child: MissionsPanel()),
         ],
       ),
     );

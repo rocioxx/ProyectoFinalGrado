@@ -9,7 +9,6 @@ class StatsPanel extends StatelessWidget {
     required this.suerte,
   });
 
-  // Todas las estadísticas están en rango 0–100
   final double vida;
   final double poder;
   final double tiempo;
@@ -27,21 +26,9 @@ class StatsPanel extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _StatBar(label: 'Vida', color: const Color(0xFFE8706A), value: vida),
-          _StatBar(
-            label: 'Poder',
-            color: const Color(0xFFE85D04),
-            value: poder,
-          ),
-          _StatBar(
-            label: 'Tiempo',
-            color: const Color(0xFF5B9BD5),
-            value: tiempo,
-          ),
-          _StatBar(
-            label: 'Suerte',
-            color: const Color(0xFF95D44A),
-            value: suerte,
-          ),
+          _StatBar(label: 'Poder', color: const Color(0xFFE85D04), value: poder),
+          _StatBar(label: 'Tiempo', color: const Color(0xFF5B9BD5), value: tiempo),
+          _StatBar(label: 'Suerte', color: const Color(0xFF95D44A), value: suerte),
         ],
       ),
     );
@@ -57,7 +44,7 @@ class _StatBar extends StatelessWidget {
 
   final String label;
   final Color color;
-  final double value; // 0.0 – 1.0
+  final double value;
 
   @override
   Widget build(BuildContext context) {
