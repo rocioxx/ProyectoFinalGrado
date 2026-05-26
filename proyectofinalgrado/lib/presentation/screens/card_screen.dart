@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/ads/ad_service.dart';
 import '../../data/repositories/game_repository_impl.dart';
 import '../../domain/entities/carta.dart';
 import '../../domain/usecases/apply_decision_usecase.dart';
@@ -47,6 +48,8 @@ class _CardView extends StatefulWidget {
 
 class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
   late Carta _cartaActual;
+  final _adService = AdService();
+  int _ruletasRestantes = 2;
 
   double _screenHeight = 1;
   double _screenWidth = 1;
@@ -104,6 +107,9 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     _spinAnim = Tween<double>(begin: 0, end: 8 * pi).animate(
       CurvedAnimation(parent: _spinCtrl, curve: Curves.easeOut),
     );
+
+    // Inicializar AdMob y precargar anuncio (solo Android)
+    _adService.init().then((_) => _adService.load());
 
     // Animación de entrada al cargar la pantalla por primera vez
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -194,8 +200,22 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     setState(() => _phase = _Phase.idle);
   }
 
+  void _onRuletaTap() {
+    _adService.show(
+      onRewarded: _usarRuleta,
+      onNotReady: () => ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cargando anuncio, inténtalo en un momento...'),
+          duration: Duration(seconds: 2),
+        ),
+      ),
+    );
+  }
+
   Future<void> _usarRuleta() async {
     final cubit = context.read<GameCubit>();
+
+    setState(() => _ruletasRestantes--);
 
     // Giro horizontal en el eje Y
     setState(() => _phase = _Phase.spinning);
@@ -340,8 +360,9 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 36),
               child: _RuletaButton(
-                enabled: _phase == _Phase.idle,
-                onTap: _usarRuleta,
+                enabled: _phase == _Phase.idle && _ruletasRestantes > 0,
+                restantes: _ruletasRestantes,
+                onTap: _onRuletaTap,
               ),
             ),
           ),
@@ -354,9 +375,14 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
 // ── Botón ruleta ──────────────────────────────────────────────────────────────
 
 class _RuletaButton extends StatelessWidget {
-  const _RuletaButton({required this.enabled, required this.onTap});
+  const _RuletaButton({
+    required this.enabled,
+    required this.restantes,
+    required this.onTap,
+  });
 
   final bool enabled;
+  final int restantes;
   final VoidCallback onTap;
 
   @override
@@ -366,31 +392,59 @@ class _RuletaButton extends StatelessWidget {
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 200),
         opacity: enabled ? 1.0 : 0.35,
-        child: Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFF1A1208),
-            border: Border.all(
-              color: enabled ? const Color(0xFFD4AF37) : Colors.grey,
-              width: 1.5,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF1A1208),
+                border: Border.all(
+                  color: enabled ? const Color(0xFFD4AF37) : Colors.grey,
+                  width: 1.5,
+                ),
+                boxShadow: enabled
+                    ? const [
+                        BoxShadow(
+                          color: Color(0x66D4AF37),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Icon(
+                Icons.shuffle_rounded,
+                color: enabled ? const Color(0xFFD4AF37) : Colors.grey,
+                size: 30,
+              ),
             ),
-            boxShadow: enabled
-                ? const [
-                    BoxShadow(
-                      color: Color(0x66D4AF37),
-                      blurRadius: 12,
-                      spreadRadius: 1,
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: restantes > 0 ? const Color(0xFFD4AF37) : Colors.grey,
+                ),
+                child: Center(
+                  child: Text(
+                    '$restantes',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1208),
+                      fontFamily: 'Inconsolata',
                     ),
-                  ]
-                : null,
-          ),
-          child: Icon(
-            Icons.shuffle_rounded,
-            color: enabled ? const Color(0xFFD4AF37) : Colors.grey,
-            size: 30,
-          ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
