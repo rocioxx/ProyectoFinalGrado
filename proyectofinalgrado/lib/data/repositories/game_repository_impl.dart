@@ -8,6 +8,9 @@ class GameRepositoryImpl implements IGameRepository {
   Carta drawCard(GameState state) => nextCarta(state);
 
   @override
+  Carta cartaEnemigoRandom() => drawRandomEnemy();
+
+  @override
   void applyDecision(GameState state, Carta carta, bool eligioIzquierda) {
     final consecuencia = eligioIzquierda
         ? carta.efectoIzquierda(state)

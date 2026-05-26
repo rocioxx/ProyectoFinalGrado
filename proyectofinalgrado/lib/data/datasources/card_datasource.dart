@@ -21,6 +21,7 @@ bool _conSuerte(GameState s, double base) =>
 // ── Enemigos aleatorios ───────────────────────────────────────────────────────
 
 final _esqueleto = Carta(
+  imagen: 'lib/fotos/esqueleto.jpg',
   texto: 'Un esqueleto te corta el paso.',
   opcionIzquierda: 'Huir',
   opcionDerecha: 'Luchar',
@@ -31,6 +32,7 @@ final _esqueleto = Carta(
 );
 
 final _goblin = Carta(
+  imagen: 'lib/fotos/goblin.jpg',
   texto: 'Un goblin con escudo te intercepta.',
   opcionIzquierda: 'Negociar',
   opcionDerecha: 'Luchar',
@@ -41,6 +43,7 @@ final _goblin = Carta(
 );
 
 final _slime = Carta(
+  imagen: 'lib/fotos/slime.jpg',
   texto: 'Un slime bloquea el pasillo.',
   opcionIzquierda: 'Rodearlo',
   opcionDerecha: 'Atacarlo',
@@ -51,6 +54,7 @@ final _slime = Carta(
 );
 
 final _arana = Carta(
+  imagen: 'lib/fotos/araña.jpg',
   texto: 'Una araña gigante desciende del techo.',
   opcionIzquierda: 'Intentar huir',
   opcionDerecha: 'Luchar',
@@ -62,9 +66,11 @@ final _arana = Carta(
 
 final _poolEnemigos = [_esqueleto, _goblin, _slime, _arana];
 
+// Copia texto, opciones e imagen del enemigo original, luego encadena a siguiente
 Carta _encuentroEnemigo(Carta siguiente) {
   final e = _poolEnemigos[_rng.nextInt(_poolEnemigos.length)];
   return Carta(
+    imagen: e.imagen,
     texto: e.texto,
     opcionIzquierda: e.opcionIzquierda,
     opcionDerecha: e.opcionDerecha,
@@ -145,6 +151,7 @@ final _cartaNigromante = Carta(
 );
 
 final _cartaPuertaFinal = Carta(
+  imagen: 'lib/fotos/puerta principio.jpg',
   texto: 'Una gran puerta bloquea el camino.\nAl otro lado se oye algo.',
   opcionIzquierda: 'Intentar abrirla',
   opcionDerecha: 'Darle una patada',
@@ -159,6 +166,7 @@ final _cartaPuertaFinal = Carta(
 );
 
 final _cartaCantimplora = Carta(
+  imagen: 'lib/fotos/cantimplora.jpg',
   texto: 'Encuentras una cantimplora en el suelo.\nParece intacta.',
   opcionIzquierda: 'Beber',
   opcionDerecha: 'Cogerla y beber',
@@ -183,6 +191,7 @@ final _cartaCantimplora = Carta(
 );
 
 final Carta _cartaPasilloOscuro = Carta(
+  imagen: 'lib/fotos/pasillooscuro.jpg',
   texto: 'El pasillo esta completamente oscuro.\nNo ves nada.',
   opcionIzquierda: 'Ir a la izquierda',
   opcionDerecha: 'Ir a la derecha',
@@ -199,6 +208,7 @@ final Carta _cartaPasilloOscuro = Carta(
 );
 
 final _cartaMimico = Carta(
+  imagen: 'lib/fotos/mimico.jpg',
   texto: 'El cofre tiene dientes.\nEs un mimico.',
   opcionIzquierda: 'Intentar huir',
   opcionDerecha: 'Luchar',
@@ -225,6 +235,7 @@ final _cartaMimico = Carta(
 );
 
 final _cartaCofre = Carta(
+  imagen: 'lib/fotos/cofre cerrado.jpg',
   texto: 'Hay un cofre en el pasillo.\nParece cerrado.',
   opcionIzquierda: 'Ignorarlo',
   opcionDerecha: 'Abrirlo',
@@ -248,6 +259,7 @@ final _cartaCofre = Carta(
 );
 
 final _cartaCombateAventurero = Carta(
+  imagen: 'lib/fotos/pasillo mazmorra.jpg',
   texto: 'El aventurero se gira y ataca.\nNo esperabas esto.',
   opcionIzquierda: 'Huir',
   opcionDerecha: 'Luchar',
@@ -273,6 +285,7 @@ final _cartaCombateAventurero = Carta(
 );
 
 final _cartaAventurero = Carta(
+  imagen: 'lib/fotos/pasillo mazmorra.jpg',
   texto: 'Un aventurero herido pide ayuda.\nParece en apuros.',
   opcionIzquierda: 'No ayudar',
   opcionDerecha: 'Ayudar',
@@ -287,6 +300,7 @@ final _cartaAventurero = Carta(
 );
 
 final _cartaPrimerPasillo = Carta(
+  imagen: 'lib/fotos/pasillo mazmorra.jpg',
   texto: 'Dos pasillos se abren ante ti.\nEl aire huele a humedad.',
   opcionIzquierda: 'Pasillo izquierdo',
   opcionDerecha: 'Pasillo derecho',
@@ -300,34 +314,37 @@ final _cartaPrimerPasillo = Carta(
   ),
 );
 
-// ── Pool (solo la carta de entrada) ──────────────────────────────────────────
+// ── Carta de entrada (única, siempre la primera) ──────────────────────────────
 
-final List<Carta> _todasLasCartas = [
-  Carta(
-    texto: 'Entras a la mazmorra.\nLa puerta se cierra detras de ti.',
-    opcionIzquierda: 'Entrar por la izquierda',
-    opcionDerecha: 'Entrar por la derecha',
-    efectoIzquierda: (s) => Consecuencia(
-      deltaTiempo: -3,
-      onApply: (st) => _ir(st, _cartaPrimerPasillo),
-    ),
-    efectoDerecha: (s) => Consecuencia(
-      deltaTiempo: -3,
-      onApply: (st) => _ir(st, _cartaPrimerPasillo),
-    ),
+final _cartaEntrada = Carta(
+  imagen: 'lib/fotos/puerta principio.jpg',
+  texto: 'Entras a la mazmorra.\nLa puerta se cierra detras de ti.',
+  opcionIzquierda: 'Entrar por la izquierda',
+  opcionDerecha: 'Entrar por la derecha',
+  efectoIzquierda: (s) => Consecuencia(
+    deltaTiempo: -3,
+    onApply: (st) => _ir(st, _cartaPrimerPasillo),
   ),
-];
+  efectoDerecha: (s) => Consecuencia(
+    deltaTiempo: -3,
+    onApply: (st) => _ir(st, _cartaPrimerPasillo),
+  ),
+);
 
 // ── API pública ───────────────────────────────────────────────────────────────
 
+Carta drawRandomEnemy() =>
+    _poolEnemigos[_rng.nextInt(_poolEnemigos.length)];
+
 Carta nextCarta(GameState estado) {
+  if (!estado.iniciada) {
+    estado.iniciada = true;
+    return _cartaEntrada;
+  }
   if (estado.cartaPendiente != null) {
     final c = estado.cartaPendiente! as Carta;
     estado.cartaPendiente = null;
     return c;
   }
-  final pool = _todasLasCartas
-      .where((c) => c.condicion == null || c.condicion!(estado))
-      .toList();
-  return pool[_rng.nextInt(pool.length)];
+  return drawRandomEnemy();
 }

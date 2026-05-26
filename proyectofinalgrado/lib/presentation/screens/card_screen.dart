@@ -1,9 +1,11 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/game_repository_impl.dart';
 import '../../domain/entities/carta.dart';
 import '../../domain/usecases/apply_decision_usecase.dart';
 import '../../domain/usecases/draw_card_usecase.dart';
+import '../../domain/usecases/skip_card_usecase.dart';
 import '../cubits/game_cubit.dart';
 import '../cubits/game_ui_state.dart';
 import '../widgets/missions_panel.dart';
@@ -24,6 +26,7 @@ class CardScreen extends StatelessWidget {
         return GameCubit(
           drawCard: DrawCardUseCase(repo),
           applyDecision: ApplyDecisionUseCase(repo),
+          skipCard: SkipCardUseCase(repo),
         );
       },
       child: const _CardView(),
@@ -33,7 +36,7 @@ class CardScreen extends StatelessWidget {
 
 // ── View (animations + gestures) ─────────────────────────────────────────────
 
-enum _Phase { idle, exiting, entering, returning }
+enum _Phase { idle, exiting, entering, returning, spinning }
 
 class _CardView extends StatefulWidget {
   const _CardView();
@@ -48,14 +51,18 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
   double _screenHeight = 1;
   double _screenWidth = 1;
   double _x = 0;
-  _Phase _phase = _Phase.idle;
+  // Empieza en entering para que el botón aparezca desactivado al inicio
+  _Phase _phase = _Phase.entering;
 
   late final AnimationController _exitCtrl;
   late final AnimationController _enterCtrl;
   late final AnimationController _returnCtrl;
+  late final AnimationController _spinCtrl;
   late final Animation<double> _enterScale;
   late final Animation<double> _enterOpacity;
   late final Animation<double> _enterY;
+  // 4 vueltas en el eje Y (giro horizontal) que decelera — efecto ruleta
+  late final Animation<double> _spinAnim;
   late Animation<Offset> _exitOffset;
   late Animation<double> _exitRot;
   late Animation<double> _returnAnim;
@@ -89,6 +96,23 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 450),
     );
+    _spinCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    // 4 vueltas completas en Y desacelerando
+    _spinAnim = Tween<double>(begin: 0, end: 8 * pi).animate(
+      CurvedAnimation(parent: _spinCtrl, curve: Curves.easeOut),
+    );
+
+    // Animación de entrada al cargar la pantalla por primera vez
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await _enterCtrl.forward(from: 0);
+      if (!mounted) return;
+      _enterCtrl.reset();
+      setState(() => _phase = _Phase.idle);
+    });
   }
 
   @override
@@ -96,6 +120,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     _exitCtrl.dispose();
     _enterCtrl.dispose();
     _returnCtrl.dispose();
+    _spinCtrl.dispose();
     super.dispose();
   }
 
@@ -169,13 +194,37 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     setState(() => _phase = _Phase.idle);
   }
 
+  Future<void> _usarRuleta() async {
+    final cubit = context.read<GameCubit>();
+
+    // Giro horizontal en el eje Y
+    setState(() => _phase = _Phase.spinning);
+    await _spinCtrl.forward(from: 0);
+    _spinCtrl.reset();
+
+    cubit.skipCard();
+
+    if (!mounted) return;
+
+    final newState = cubit.state as GamePlaying;
+    setState(() {
+      _x = 0;
+      _phase = _Phase.entering;
+      _cartaActual = newState.cartaActual;
+    });
+
+    await _enterCtrl.forward(from: 0);
+    _enterCtrl.reset();
+    setState(() => _phase = _Phase.idle);
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     _screenWidth = size.width;
     _screenHeight = size.height;
 
-    const card = SwipeCard();
+    final card = SwipeCard(imagen: _cartaActual.imagen);
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 29, 20, 13),
@@ -237,6 +286,21 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
+                // Giro horizontal: rotación en el eje Y con perspectiva
+                _Phase.spinning => AnimatedBuilder(
+                    animation: _spinCtrl,
+                    child: card,
+                    builder: (_, child) => Transform.translate(
+                      offset: const Offset(0, 130.0),
+                      child: Transform(
+                        transform: Matrix4.identity()
+                          ..setEntry(3, 2, 0.001)
+                          ..rotateY(_spinAnim.value),
+                        alignment: Alignment.center,
+                        child: child,
+                      ),
+                    ),
+                  ),
               },
             ),
           ),
@@ -269,7 +333,65 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
           ),
 
           const Positioned(top: 48, right: 16, child: MissionsPanel()),
+
+          // ── Botón ruleta ───────────────────────────────────────────────
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 36),
+              child: _RuletaButton(
+                enabled: _phase == _Phase.idle,
+                onTap: _usarRuleta,
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Botón ruleta ──────────────────────────────────────────────────────────────
+
+class _RuletaButton extends StatelessWidget {
+  const _RuletaButton({required this.enabled, required this.onTap});
+
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: enabled ? 1.0 : 0.35,
+        child: Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xFF1A1208),
+            border: Border.all(
+              color: enabled ? const Color(0xFFD4AF37) : Colors.grey,
+              width: 1.5,
+            ),
+            boxShadow: enabled
+                ? const [
+                    BoxShadow(
+                      color: Color(0x66D4AF37),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Icon(
+            Icons.shuffle_rounded,
+            color: enabled ? const Color(0xFFD4AF37) : Colors.grey,
+            size: 30,
+          ),
+        ),
       ),
     );
   }

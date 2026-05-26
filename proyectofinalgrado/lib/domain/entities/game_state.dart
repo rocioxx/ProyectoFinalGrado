@@ -16,6 +16,7 @@ class GameState {
     this.textoResolucion = '',
     this.cartaPendiente,
     this.victoria = false,
+    this.iniciada = false,
   });
 
   double vida;
@@ -36,4 +37,5 @@ class GameState {
   Object? cartaPendiente;
   String textoResolucion;
   bool victoria;
+  bool iniciada;
 }

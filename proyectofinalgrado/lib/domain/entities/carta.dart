@@ -11,6 +11,7 @@ class Carta {
     required this.efectoIzquierda,
     required this.efectoDerecha,
     this.condicion,
+    this.imagen,
   });
 
   final String texto;
@@ -19,4 +20,5 @@ class Carta {
   final EfectoCarta efectoIzquierda;
   final EfectoCarta efectoDerecha;
   final bool Function(GameState)? condicion;
+  final String? imagen;
 }
