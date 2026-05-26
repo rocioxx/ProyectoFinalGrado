@@ -51,6 +51,52 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
   final _adService = AdService();
   int _ruletasRestantes = 2;
 
+  // ── Overlay de consecuencias ──────────────────────────────────────────────
+  List<({String texto, Color color})> _consecuencias = [];
+  double _consecuenciasOpacidad = 0.0;
+
+  void _mostrarResultado(double dv, double dp, double ds, double dt) {
+    final items = <({String texto, Color color})>[];
+    if (dv.abs() >= 0.5) {
+      items.add((
+        texto: '${dv > 0 ? '+' : ''}${dv.round()} Vida',
+        color: dv > 0 ? const Color(0xFF6BCB77) : const Color(0xFFE8706A),
+      ));
+    }
+    if (dp.abs() >= 0.5) {
+      items.add((
+        texto: '${dp > 0 ? '+' : ''}${dp.round()} Poder',
+        color: dp > 0 ? const Color(0xFF78C4E0) : const Color(0xFFAAAAAA),
+      ));
+    }
+    if (ds.abs() >= 0.5) {
+      items.add((
+        texto: '${ds > 0 ? '+' : ''}${ds.round()} Suerte',
+        color: ds > 0 ? const Color(0xFFD4AF37) : const Color(0xFFAAAAAA),
+      ));
+    }
+    if (dt.abs() >= 0.5) {
+      items.add((
+        texto: '${dt > 0 ? '+' : ''}${dt.round()} Tiempo',
+        color: const Color(0xFFB0A080),
+      ));
+    }
+    if (items.isEmpty) return;
+
+    setState(() {
+      _consecuencias = items;
+      _consecuenciasOpacidad = 1.0;
+    });
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (!mounted) return;
+      setState(() => _consecuenciasOpacidad = 0.0);
+    });
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      if (!mounted) return;
+      setState(() => _consecuencias = []);
+    });
+  }
+
   double _screenHeight = 1;
   double _screenWidth = 1;
   double _x = 0;
@@ -148,6 +194,13 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     final cartaActual = _cartaActual;
     final cubit = context.read<GameCubit>();
 
+    // Capturar stats antes de aplicar la decisión
+    final gs0 = (cubit.state as GamePlaying).gameState;
+    final vida0 = gs0.vida;
+    final poder0 = gs0.poder;
+    final suerte0 = gs0.suerte;
+    final tiempo0 = gs0.tiempo;
+
     final dir = _x.sign;
     final startX = _x;
     final startRot = (startX / (_screenWidth * 0.6)).clamp(-1.0, 1.0) * 0.3;
@@ -189,6 +242,14 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     }
 
     final playing = newState as GamePlaying;
+    final gs1 = playing.gameState;
+    _mostrarResultado(
+      gs1.vida - vida0,
+      gs1.poder - poder0,
+      gs1.suerte - suerte0,
+      gs1.tiempo - tiempo0,
+    );
+
     setState(() {
       _x = 0;
       _phase = _Phase.entering;
@@ -325,42 +386,113 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
             ),
           ),
 
-          Positioned(
-            left: 32,
-            right: 32,
-            top: _screenHeight * 0.33,
-            child: ScenarioText(
-              carta: _cartaActual,
-              dragX: _phase == _Phase.idle ? _x : 0,
-              threshold: _threshold,
-            ),
-          ),
-
-          Align(
-            alignment: Alignment.topCenter,
-            child: BlocBuilder<GameCubit, GameUiState>(
-              buildWhen: (_, s) => s is GamePlaying,
-              builder: (_, state) {
-                final gs = (state as GamePlaying).gameState;
-                return StatsPanel(
-                  vida: gs.vida,
-                  poder: gs.poder,
-                  tiempo: gs.tiempo,
-                  suerte: gs.suerte,
-                );
-              },
-            ),
+          BlocBuilder<GameCubit, GameUiState>(
+            buildWhen: (_, s) => s is GamePlaying,
+            builder: (_, state) {
+              final gs = (state as GamePlaying).gameState;
+              return Stack(
+                children: [
+                  if (gs.enemyVida != null)
+                    Positioned(
+                      left: 32,
+                      right: 32,
+                      top: _screenHeight * 0.27,
+                      child: _EnemyHealthBar(
+                        vida: gs.enemyVida!,
+                        maxVida: gs.enemyMaxVida!,
+                      ),
+                    ),
+                  Positioned(
+                    left: 32,
+                    right: 32,
+                    top: _screenHeight * 0.33,
+                    child: ScenarioText(
+                      carta: _cartaActual,
+                      gameState: gs,
+                      dragX: _phase == _Phase.idle ? _x : 0,
+                      threshold: _threshold,
+                    ),
+                  ),
+                  if (_cartaActual.nota != null)
+                    Positioned(
+                      left: 24,
+                      right: 24,
+                      top: _screenHeight * 0.72,
+                      child: _NotaCard(texto: _cartaActual.nota!.call(gs)),
+                    ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: StatsPanel(
+                      vida: gs.vida,
+                      poder: gs.poder,
+                      tiempo: gs.tiempo,
+                      suerte: gs.suerte,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
 
           const Positioned(top: 48, right: 16, child: MissionsPanel()),
+
+          // ── Overlay de consecuencias ───────────────────────────────────
+          if (_consecuencias.isNotEmpty)
+            Positioned(
+              left: 32,
+              right: 32,
+              top: _screenHeight * 0.28,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 400),
+                opacity: _consecuenciasOpacidad,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xDD1A1208),
+                    borderRadius: BorderRadius.circular(8),
+                    border:
+                        Border.all(color: const Color(0x66D4AF37), width: 1),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: _consecuencias
+                        .expand((e) => [
+                              Text(
+                                e.texto,
+                                style: TextStyle(
+                                  fontFamily: 'Inconsolata',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: e.color,
+                                ),
+                              ),
+                              if (e != _consecuencias.last)
+                                const Text(
+                                  '  ·  ',
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontSize: 14,
+                                    color: Color(0x88D4AF37),
+                                  ),
+                                ),
+                            ])
+                        .toList(),
+                  ),
+                ),
+              ),
+            ),
 
           // ── Botón ruleta ───────────────────────────────────────────────
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 36),
+              padding: const EdgeInsets.only(bottom: 16),
               child: _RuletaButton(
-                enabled: _phase == _Phase.idle && _ruletasRestantes > 0,
+                enabled: _phase == _Phase.idle &&
+                    _ruletasRestantes > 0 &&
+                    _cartaActual.saltable,
                 restantes: _ruletasRestantes,
                 onTap: _onRuletaTap,
               ),
@@ -396,8 +528,8 @@ class _RuletaButton extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Container(
-              width: 64,
-              height: 64,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: const Color(0xFF1A1208),
@@ -409,7 +541,7 @@ class _RuletaButton extends StatelessWidget {
                     ? const [
                         BoxShadow(
                           color: Color(0x66D4AF37),
-                          blurRadius: 12,
+                          blurRadius: 8,
                           spreadRadius: 1,
                         ),
                       ]
@@ -418,15 +550,15 @@ class _RuletaButton extends StatelessWidget {
               child: Icon(
                 Icons.shuffle_rounded,
                 color: enabled ? const Color(0xFFD4AF37) : Colors.grey,
-                size: 30,
+                size: 22,
               ),
             ),
             Positioned(
-              top: -4,
-              right: -4,
+              top: -3,
+              right: -3,
               child: Container(
-                width: 20,
-                height: 20,
+                width: 16,
+                height: 16,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: restantes > 0 ? const Color(0xFFD4AF37) : Colors.grey,
@@ -435,7 +567,7 @@ class _RuletaButton extends StatelessWidget {
                   child: Text(
                     '$restantes',
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 9,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1A1208),
                       fontFamily: 'Inconsolata',
@@ -445,6 +577,75 @@ class _RuletaButton extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Barra de vida del enemigo ─────────────────────────────────────────────────
+
+class _EnemyHealthBar extends StatelessWidget {
+  const _EnemyHealthBar({required this.vida, required this.maxVida});
+
+  final double vida;
+  final double maxVida;
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = (vida / maxVida).clamp(0.0, 1.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Vida enemigo: ${vida.toInt()} / ${maxVida.toInt()}',
+          style: const TextStyle(
+            fontFamily: 'Inconsolata',
+            fontSize: 13,
+            color: Color(0xFFE8706A),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: pct,
+            minHeight: 8,
+            backgroundColor: const Color(0x44E8706A),
+            valueColor: const AlwaysStoppedAnimation(Color(0xFFE8706A)),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Cuadro de nota informativa ────────────────────────────────────────────────
+
+class _NotaCard extends StatelessWidget {
+  const _NotaCard({required this.texto});
+
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xCC1A1208),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0x88D4AF37), width: 1),
+      ),
+      child: Text(
+        texto,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontFamily: 'Inconsolata',
+          fontSize: 13,
+          color: Color(0xFFD4AF37),
+          height: 1.5,
         ),
       ),
     );

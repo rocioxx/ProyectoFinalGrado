@@ -42,6 +42,8 @@ class GameCubit extends Cubit<GameUiState> {
   // Descarta la carta actual y muestra un enemigo aleatorio del pool
   void skipCard() {
     _gameState.cartaPendiente = null;
+    _gameState.enemyVida = null;
+    _gameState.enemyMaxVida = null;
     emit(GamePlaying(
       cartaActual: _skipCard(),
       gameState: _gameState,

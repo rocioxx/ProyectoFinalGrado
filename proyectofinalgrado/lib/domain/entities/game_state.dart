@@ -17,6 +17,8 @@ class GameState {
     this.cartaPendiente,
     this.victoria = false,
     this.iniciada = false,
+    this.enemyVida,
+    this.enemyMaxVida,
   });
 
   double vida;
@@ -38,4 +40,6 @@ class GameState {
   String textoResolucion;
   bool victoria;
   bool iniciada;
+  double? enemyVida;
+  double? enemyMaxVida;
 }

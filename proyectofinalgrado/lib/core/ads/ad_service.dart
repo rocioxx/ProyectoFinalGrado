@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdService {
@@ -61,7 +62,11 @@ class AdService {
         _ad = null;
         _isLoaded = false;
         load(); // precarga el siguiente
-        if (earned) onRewarded(); // ejecutar DESPUÉS de cerrar el anuncio
+        // addPostFrameCallback garantiza que Flutter ha reanudado sus tickers
+        // antes de ejecutar la recompensa (evita animaciones colgadas)
+        if (earned) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => onRewarded());
+        }
       },
       onAdFailedToShowFullScreenContent: (ad, _) {
         ad.dispose();

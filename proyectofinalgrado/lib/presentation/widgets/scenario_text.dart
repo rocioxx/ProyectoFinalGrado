@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/carta.dart';
+import '../../domain/entities/game_state.dart';
 
 class ScenarioText extends StatelessWidget {
   const ScenarioText({
     super.key,
     required this.carta,
+    required this.gameState,
     required this.dragX,
     required this.threshold,
   });
 
   final Carta carta;
+  final GameState gameState;
   final double dragX;
   final double threshold;
 
@@ -26,7 +29,7 @@ class ScenarioText extends StatelessWidget {
         Opacity(
           opacity: 1.0 - progress,
           child: Text(
-            carta.texto,
+            carta.textoFor(gameState),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: 'Inconsolata',
