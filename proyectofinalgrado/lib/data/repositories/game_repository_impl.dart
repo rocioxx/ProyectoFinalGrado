@@ -16,10 +16,10 @@ class GameRepositoryImpl implements IGameRepository {
         ? carta.efectoIzquierda(state)
         : carta.efectoDerecha(state);
 
-    state.vida = (state.vida + consecuencia.deltaVida).clamp(0.0, 100.0);
-    state.suerte = (state.suerte + consecuencia.deltaSuerte).clamp(0.0, 100.0);
-    state.tiempo = (state.tiempo + consecuencia.deltaTiempo).clamp(0.0, 100.0);
-    state.poder = (state.poder + consecuencia.deltaPoder).clamp(0.0, 100.0);
+    state.vida = (state.vida + consecuencia.deltaVida).clamp(0.0, 50.0).roundToDouble();
+    state.suerte = (state.suerte + consecuencia.deltaSuerte).clamp(0.0, 100.0).roundToDouble();
+    state.tiempo = (state.tiempo + consecuencia.deltaTiempo).clamp(0.0, 100.0).roundToDouble();
+    state.poder = (state.poder + consecuencia.deltaPoder).clamp(0.0, 10.0).roundToDouble();
 
     consecuencia.onApply?.call(state);
     state.textoResolucion = consecuencia.texto;

@@ -29,10 +29,10 @@ class StatsPanel extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _StatBar(label: 'Vida', color: const Color(0xFFE8706A), value: vida, barHeight: barHeight),
-          _StatBar(label: 'Poder', color: const Color(0xFFE85D04), value: poder, barHeight: barHeight),
-          _StatBar(label: 'Tiempo', color: const Color(0xFF5B9BD5), value: tiempo, barHeight: barHeight),
-          _StatBar(label: 'Suerte', color: const Color(0xFF95D44A), value: suerte, barHeight: barHeight),
+          _StatBar(label: 'Vida',   color: const Color(0xFFE8706A), value: vida,   maxValue: 50,  barHeight: barHeight),
+          _StatBar(label: 'Poder',  color: const Color(0xFFE85D04), value: poder,  maxValue: 10,  barHeight: barHeight),
+          _StatBar(label: 'Tiempo', color: const Color(0xFF5B9BD5), value: tiempo, maxValue: 100, barHeight: barHeight),
+          _StatBar(label: 'Suerte', color: const Color(0xFF95D44A), value: suerte, maxValue: 100, barHeight: barHeight),
         ],
       ),
     );
@@ -44,12 +44,14 @@ class _StatBar extends StatelessWidget {
     required this.label,
     required this.color,
     required this.value,
+    required this.maxValue,
     required this.barHeight,
   });
 
   final String label;
   final Color color;
   final double value;
+  final double maxValue;
   final double barHeight;
 
   @override
@@ -77,11 +79,21 @@ class _StatBar extends StatelessWidget {
               children: [
                 Container(color: const Color.fromARGB(179, 255, 255, 255)),
                 FractionallySizedBox(
-                  heightFactor: (value / 100).clamp(0.0, 1.0),
+                  heightFactor: (value / maxValue).clamp(0.0, 1.0),
                   child: Container(color: color),
                 ),
               ],
             ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value.toInt().toString(),
+          style: TextStyle(
+            color: color,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Inconsolata',
           ),
         ),
       ],

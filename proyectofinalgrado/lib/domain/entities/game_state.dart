@@ -1,9 +1,9 @@
 class GameState {
   GameState({
-    this.vida = 100,
+    this.vida = 50,
     this.suerte = 50,
     this.tiempo = 100,
-    this.poder = 20,
+    this.poder = 10,
     this.isEnvenenado = false,
     this.vaccinated = false,
     this.antiAdherentBoots = false,
@@ -22,7 +22,8 @@ class GameState {
     this.cantimploraEncontrada = false,
     this.aventureroEncontrado = false,
     this.puertaFinalAlcanzada = false,
-  });
+    List<int>? enemyQueue,
+  }) : enemyQueue = enemyQueue ?? [];
 
   double vida;
   double suerte;
@@ -48,4 +49,5 @@ class GameState {
   bool cantimploraEncontrada;
   bool aventureroEncontrado;
   bool puertaFinalAlcanzada;
+  List<int> enemyQueue;
 }

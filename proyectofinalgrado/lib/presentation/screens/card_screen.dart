@@ -312,7 +312,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     _screenWidth = size.width;
     _screenHeight = size.height;
     _threshold = (_screenWidth * 0.20).clamp(60.0, 100.0);
-    final cardOffsetY = _screenHeight * 0.155;
+    final cardOffsetY = _screenHeight * 0.20;
     final hPad = _screenWidth * 0.08;
 
     final card = SwipeCard(imagen: _cartaActual.imagen);
@@ -406,7 +406,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     Positioned(
                       left: hPad,
                       right: hPad,
-                      top: _screenHeight * 0.36,
+                      top: _screenHeight * 0.43,
                       child: _EnemyHealthBar(
                         vida: gs.enemyVida!,
                         maxVida: gs.enemyMaxVida!,
@@ -415,7 +415,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                   Positioned(
                     left: hPad,
                     right: hPad,
-                    top: _screenHeight * 0.33,
+                    top: _screenHeight * 0.38,
                     child: ScenarioText(
                       carta: _cartaActual,
                       gameState: gs,
@@ -677,15 +677,15 @@ class _EnemyHealthBar extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Vida enemigo: ${vida.toInt()} / ${maxVida.toInt()}',
+          '${vida.toInt()} / ${maxVida.toInt()}',
           style: const TextStyle(
-            fontFamily: 'Inconsolata',
-            fontSize: 13,
             color: Color(0xFFE8706A),
-            fontWeight: FontWeight.w600,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Inconsolata',
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 3),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
