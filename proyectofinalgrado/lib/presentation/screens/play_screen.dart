@@ -73,6 +73,13 @@ class _PlayScreenState extends State<PlayScreen> {
                 SizedBox(height: topSpacing),
 
                 SizedBox(height: size.height * 0.012),
+                Image.asset(
+                  'lib/fotos/inicio.png', //esta imagen aparece a la mitad de la pantalla y se ve muy grande
+                  width: btnWidth,
+                  height: 600,
+                  alignment: Alignment.topCenter,
+                  fit: BoxFit.contain,
+                ),
 
                 Text(
                   'Entrar a la mazmorra',
