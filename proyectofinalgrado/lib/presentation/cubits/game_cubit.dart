@@ -67,9 +67,10 @@ class GameCubit extends Cubit<GameUiState> {
     ));
   }
 
-  void applyDecision(Carta carta, bool eligioIzquierda) {
+  Future<void> applyDecision(Carta carta, bool eligioIzquierda) async {
     _cartasJugadas++;
 
+    // Fire-and-forget: no bloquear la UI por cada swipe
     _analytics.cardSwiped(
       carta: carta.texto.split('\n').first,
       direccion: eligioIzquierda ? 'izquierda' : 'derecha',
@@ -78,13 +79,14 @@ class GameCubit extends Cubit<GameUiState> {
     final enemyVidaAntes = _gameState.enemyVida;
     _applyDecision(_gameState, carta, eligioIzquierda);
 
-    // Detectar inicio de combate (enemyVida pasa de null a tener valor)
     if (enemyVidaAntes == null && _gameState.enemyVida != null) {
       _analytics.combatStarted(carta.texto.split('\n').first);
     }
 
     if (_gameState.victoria) {
-      _analytics.gameWon({
+      // Emitir primero para que la UI reaccione, luego esperar confirmación de Supabase
+      emit(GameVictoryState(gameState: _gameState));
+      await _analytics.gameWon({
         'vida': _gameState.vida,
         'poder': _gameState.poder,
         'suerte': _gameState.suerte,
@@ -93,14 +95,14 @@ class GameCubit extends Cubit<GameUiState> {
         'cartas_jugadas': _cartasJugadas,
         'ruletas_usadas': _ruletasUsadas,
       });
-      emit(GameVictoryState());
       return;
     }
     if (_gameState.vida <= 0 ||
         _gameState.suerte <= 0 ||
         _gameState.tiempo <= 0 ||
         _gameState.poder <= 0) {
-      _analytics.gameOver(
+      emit(GameOverState(gameState: _gameState));
+      await _analytics.gameOver(
         statMuerta: _gameState.vida <= 0
             ? 'vida'
             : _gameState.suerte <= 0
@@ -118,7 +120,6 @@ class GameCubit extends Cubit<GameUiState> {
           'ruletas_usadas': _ruletasUsadas,
         },
       );
-      emit(GameOverState());
       return;
     }
     emit(GamePlaying(

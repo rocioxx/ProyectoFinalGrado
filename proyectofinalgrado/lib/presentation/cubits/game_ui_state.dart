@@ -9,6 +9,12 @@ class GamePlaying extends GameUiState {
   final GameState gameState;
 }
 
-class GameOverState extends GameUiState {}
+class GameOverState extends GameUiState {
+  GameOverState({required this.gameState});
+  final GameState gameState;
+}
 
-class GameVictoryState extends GameUiState {}
+class GameVictoryState extends GameUiState {
+  GameVictoryState({required this.gameState});
+  final GameState gameState;
+}

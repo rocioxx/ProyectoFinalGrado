@@ -222,7 +222,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     await _exitCtrl.forward(from: 0);
     _exitCtrl.reset();
 
-    cubit.applyDecision(cartaActual, eligioIzquierda);
+    await cubit.applyDecision(cartaActual, eligioIzquierda);
 
     if (!mounted) return;
 
@@ -231,7 +231,8 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     if (newState is GameVictoryState) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const WinScreen()),
+        MaterialPageRoute(
+            builder: (_) => WinScreen(gameState: newState.gameState)),
       );
       return;
     }
@@ -239,7 +240,8 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     if (newState is GameOverState) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const GameOverScreen()),
+        MaterialPageRoute(
+            builder: (_) => GameOverScreen(gameState: newState.gameState)),
       );
       return;
     }
@@ -404,7 +406,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     Positioned(
                       left: hPad,
                       right: hPad,
-                      top: _screenHeight * 0.42,
+                      top: _screenHeight * 0.36,
                       child: _EnemyHealthBar(
                         vida: gs.enemyVida!,
                         maxVida: gs.enemyMaxVida!,

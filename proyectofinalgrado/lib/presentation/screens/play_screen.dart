@@ -19,11 +19,14 @@ class _PlayScreenState extends State<PlayScreen> {
     _ctrl = VideoPlayerController.asset('lib/fotos/portada_video.mp4')
       ..setLooping(true)
       ..setVolume(0);
-    _ctrl.initialize().then((_) {
-      if (!mounted) return;
-      setState(() => _videoReady = true);
-      _ctrl.play();
-    }).catchError((_) {});
+    _ctrl
+        .initialize()
+        .then((_) {
+          if (!mounted) return;
+          setState(() => _videoReady = true);
+          _ctrl.play();
+        })
+        .catchError((_) {});
   }
 
   @override
@@ -68,29 +71,6 @@ class _PlayScreenState extends State<PlayScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: topSpacing),
-
-                // Título arriba
-                Text(
-                  'DUNGEON',
-                  style: TextStyle(
-                    fontFamily: 'Inconsolata',
-                    fontSize: titleSize,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFFD4AF37),
-                    letterSpacing: 8,
-                    shadows: const [
-                      Shadow(
-                        color: Colors.black,
-                        blurRadius: 24,
-                        offset: Offset(0, 4),
-                      ),
-                      Shadow(
-                        color: Colors.black,
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                ),
 
                 SizedBox(height: size.height * 0.012),
 

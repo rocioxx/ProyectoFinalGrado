@@ -12,10 +12,16 @@ class OptionsScreen extends StatefulWidget {
 
 class _OptionsScreenState extends State<OptionsScreen> {
   bool _sonido = SoundSettings.sonidoActivo.value;
+  bool _efectos = SoundSettings.efectosActivos.value;
 
   void _toggleSonido(bool val) {
     setState(() => _sonido = val);
     SoundSettings.sonidoActivo.value = val;
+  }
+
+  void _toggleEfectos(bool val) {
+    setState(() => _efectos = val);
+    SoundSettings.efectosActivos.value = val;
   }
 
   @override
@@ -74,6 +80,39 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 ),
               ),
 
+              const SizedBox(height: 12),
+
+              // ── Toggle efectos de sonido ───────────────────────────────
+              Container(
+                width: btnWidth,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1208),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0x66D4AF37)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Efectos de sonido',
+                      style: TextStyle(
+                        fontFamily: 'Inconsolata',
+                        fontSize: 16,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    Checkbox(
+                      value: _efectos,
+                      onChanged: (v) => _toggleEfectos(v ?? true),
+                      activeColor: const Color(0xFFD4AF37),
+                      checkColor: const Color(0xFF1A1208),
+                      side: const BorderSide(color: Color(0xFFD4AF37)),
+                    ),
+                  ],
+                ),
+              ),
+
               SizedBox(height: size.height * 0.05),
 
               // ── Menú principal ────────────────────────────────────────
@@ -98,19 +137,11 @@ class _OptionsScreenState extends State<OptionsScreen> {
 
               SizedBox(height: size.height * 0.05),
 
-              // ── Volver ─────────────────────────────────────────────────
-              GestureDetector(
+              // ── Reanudar ───────────────────────────────────────────────
+              _OpcionBtn(
+                label: 'Reanudar',
+                width: btnWidth,
                 onTap: () => Navigator.pop(context),
-                child: const Text(
-                  'Volver al juego',
-                  style: TextStyle(
-                    fontFamily: 'Inconsolata',
-                    fontSize: 13,
-                    color: Color(0xFFB8A070),
-                    decoration: TextDecoration.underline,
-                    decorationColor: Color(0xFFB8A070),
-                  ),
-                ),
               ),
             ],
           ),
