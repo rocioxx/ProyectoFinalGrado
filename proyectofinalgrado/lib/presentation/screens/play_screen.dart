@@ -1,30 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'login_screen.dart';
 
-class PlayScreen extends StatelessWidget {
+class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
 
   @override
+  State<PlayScreen> createState() => _PlayScreenState();
+}
+
+class _PlayScreenState extends State<PlayScreen> {
+  late final VideoPlayerController _ctrl;
+  bool _videoReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = VideoPlayerController.asset('lib/fotos/portada_video.mp4')
+      ..setLooping(true)
+      ..setVolume(0);
+    _ctrl.initialize().then((_) {
+      if (!mounted) return;
+      setState(() => _videoReady = true);
+      _ctrl.play();
+    }).catchError((_) {});
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final titleSize = (size.width * 0.13).clamp(34.0, 56.0);
+    final subtitleSize = (size.width * 0.04).clamp(13.0, 18.0);
+    final btnWidth = (size.width * 0.55).clamp(160.0, 240.0);
+    final topSpacing = size.height * 0.07;
+    final bottomSpacing = size.height * 0.06;
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Imagen de fondo ───────────────────────────────────────────────
-          Image.asset('lib/fotos/portada.png', fit: BoxFit.cover),
-
-          // ── Degradado oscuro encima ───────────────────────────────────────
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x00000000),
-                  Color(0xAA000000),
-                  Color(0xEE000000),
-                ],
-                stops: [0.3, 0.65, 1.0],
+          // ── Fondo ────────────────────────────────────────────────────────
+          const ColoredBox(color: Colors.black),
+          AnimatedOpacity(
+            opacity: _videoReady ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 600),
+            child: SizedBox.expand(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: _videoReady ? _ctrl.value.size.width : 1,
+                  height: _videoReady ? _ctrl.value.size.height : 1,
+                  child: _videoReady ? VideoPlayer(_ctrl) : const SizedBox(),
+                ),
               ),
             ),
           ),
@@ -32,84 +65,65 @@ class PlayScreen extends StatelessWidget {
           // ── Contenido ─────────────────────────────────────────────────────
           SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Spacer(),
+                SizedBox(height: topSpacing),
 
-                // Titulo
-                const Text(
+                // Título arriba
+                Text(
                   'DUNGEON',
                   style: TextStyle(
                     fontFamily: 'Inconsolata',
-                    fontSize: 48,
+                    fontSize: titleSize,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFFD4AF37),
+                    color: const Color(0xFFD4AF37),
                     letterSpacing: 8,
-                    shadows: [
+                    shadows: const [
                       Shadow(
-                        color: Color(0xFF000000),
-                        blurRadius: 20,
+                        color: Colors.black,
+                        blurRadius: 24,
                         offset: Offset(0, 4),
+                      ),
+                      Shadow(
+                        color: Colors.black,
+                        blurRadius: 8,
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 6),
+                SizedBox(height: size.height * 0.012),
 
-                // Subtitulo
-                const Text(
+                Text(
                   'Entrar a la mazmorra',
                   style: TextStyle(
                     fontFamily: 'Inconsolata',
-                    fontSize: 15,
+                    fontSize: subtitleSize,
                     fontStyle: FontStyle.italic,
-                    color: Color(0xFFB8A070),
+                    color: const Color(0xFFB8A070),
                     letterSpacing: 1.5,
+                    shadows: const [
+                      Shadow(color: Colors.black, blurRadius: 12),
+                    ],
                   ),
                 ),
 
-                const SizedBox(height: 60),
+                const Spacer(),
 
-                // Boton entrar
+                // Botón abajo
                 GestureDetector(
                   onTap: () => Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
                   ),
-                  child: Container(
-                    width: 200,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1A1208),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: const Color(0xFFD4AF37),
-                        width: 1.5,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x66D4AF37),
-                          blurRadius: 16,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'ENTRAR',
-                        style: TextStyle(
-                          fontFamily: 'Inconsolata',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFD4AF37),
-                          letterSpacing: 4,
-                        ),
-                      ),
-                    ),
+                  child: Image.asset(
+                    'lib/fotos/entrar.png',
+                    width: btnWidth,
+                    fit: BoxFit.contain,
                   ),
                 ),
 
-                const SizedBox(height: 48),
+                SizedBox(height: bottomSpacing),
               ],
             ),
           ),

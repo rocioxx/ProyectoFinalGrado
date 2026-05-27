@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../domain/entities/carta.dart';
 import '../../domain/entities/game_state.dart';
 import '../../domain/usecases/apply_decision_usecase.dart';
@@ -11,11 +12,13 @@ class GameCubit extends Cubit<GameUiState> {
     required DrawCardUseCase drawCard,
     required ApplyDecisionUseCase applyDecision,
     required SkipCardUseCase skipCard,
+    required AnalyticsService analytics,
     required GameState gameState,
     required Carta initialCard,
   })  : _drawCard = drawCard,
         _applyDecision = applyDecision,
         _skipCard = skipCard,
+        _analytics = analytics,
         _gameState = gameState,
         super(GamePlaying(cartaActual: initialCard, gameState: gameState));
 
@@ -24,11 +27,18 @@ class GameCubit extends Cubit<GameUiState> {
     required ApplyDecisionUseCase applyDecision,
     required SkipCardUseCase skipCard,
   }) {
+    final sessionId = AnalyticsService.generateSessionId();
+    final abGroup = AnalyticsService.assignAbGroup();
+    final analytics = AnalyticsService(sessionId: sessionId, abGroup: abGroup);
+
     final state = GameState();
+    analytics.gameStarted();
+
     return GameCubit._(
       drawCard: drawCard,
       applyDecision: applyDecision,
       skipCard: skipCard,
+      analytics: analytics,
       gameState: state,
       initialCard: drawCard(state),
     );
@@ -37,10 +47,17 @@ class GameCubit extends Cubit<GameUiState> {
   final DrawCardUseCase _drawCard;
   final ApplyDecisionUseCase _applyDecision;
   final SkipCardUseCase _skipCard;
+  final AnalyticsService _analytics;
   final GameState _gameState;
+  final DateTime _inicio = DateTime.now();
+  int _cartasJugadas = 0;
+  int _ruletasUsadas = 0;
 
-  // Descarta la carta actual y muestra un enemigo aleatorio del pool
+  int get _duracionSegundos => DateTime.now().difference(_inicio).inSeconds;
+
   void skipCard() {
+    _ruletasUsadas++;
+    _analytics.ruletaUsed();
     _gameState.cartaPendiente = null;
     _gameState.enemyVida = null;
     _gameState.enemyMaxVida = null;
@@ -51,9 +68,31 @@ class GameCubit extends Cubit<GameUiState> {
   }
 
   void applyDecision(Carta carta, bool eligioIzquierda) {
+    _cartasJugadas++;
+
+    _analytics.cardSwiped(
+      carta: carta.texto.split('\n').first,
+      direccion: eligioIzquierda ? 'izquierda' : 'derecha',
+    );
+
+    final enemyVidaAntes = _gameState.enemyVida;
     _applyDecision(_gameState, carta, eligioIzquierda);
 
+    // Detectar inicio de combate (enemyVida pasa de null a tener valor)
+    if (enemyVidaAntes == null && _gameState.enemyVida != null) {
+      _analytics.combatStarted(carta.texto.split('\n').first);
+    }
+
     if (_gameState.victoria) {
+      _analytics.gameWon({
+        'vida': _gameState.vida,
+        'poder': _gameState.poder,
+        'suerte': _gameState.suerte,
+        'tiempo': _gameState.tiempo,
+        'duracion_segundos': _duracionSegundos,
+        'cartas_jugadas': _cartasJugadas,
+        'ruletas_usadas': _ruletasUsadas,
+      });
       emit(GameVictoryState());
       return;
     }
@@ -61,6 +100,24 @@ class GameCubit extends Cubit<GameUiState> {
         _gameState.suerte <= 0 ||
         _gameState.tiempo <= 0 ||
         _gameState.poder <= 0) {
+      _analytics.gameOver(
+        statMuerta: _gameState.vida <= 0
+            ? 'vida'
+            : _gameState.suerte <= 0
+                ? 'suerte'
+                : _gameState.tiempo <= 0
+                    ? 'tiempo'
+                    : 'poder',
+        stats: {
+          'vida': _gameState.vida,
+          'poder': _gameState.poder,
+          'suerte': _gameState.suerte,
+          'tiempo': _gameState.tiempo,
+          'duracion_segundos': _duracionSegundos,
+          'cartas_jugadas': _cartasJugadas,
+          'ruletas_usadas': _ruletasUsadas,
+        },
+      );
       emit(GameOverState());
       return;
     }

@@ -140,21 +140,32 @@ class _LoginViewState extends State<_LoginView> {
                         children: [
                           const SizedBox(height: 24),
 
+                          Center(
+                            child: Image.asset(
+                              'lib/fotos/acceder.png',
+                              height: 90,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
                           // ── Cabecera ──────────────────────────────────────
                           Center(
                             child: Column(
                               children: [
                                 const _GoldDivider(),
                                 const SizedBox(height: 20),
-                                Text(
-                                  paso == 2 ? 'Crear cuenta' : 'Acceder',
-                                  style: const TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: _primary,
+                                if (paso == 2)
+                                  const Text(
+                                    'Crear cuenta',
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: _primary,
+                                    ),
                                   ),
-                                ),
                                 const SizedBox(height: 6),
                                 Text(
                                   paso == 0

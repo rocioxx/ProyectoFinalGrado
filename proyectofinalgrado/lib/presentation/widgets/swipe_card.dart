@@ -7,9 +7,13 @@ class SwipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final w = (size.width * 0.87).clamp(260.0, 360.0);
+    final h = (size.height * 0.46).clamp(280.0, 420.0);
+
     return SizedBox(
-      width: 350,
-      height: 400,
+      width: w,
+      height: h,
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),

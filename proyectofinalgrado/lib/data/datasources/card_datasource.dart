@@ -53,6 +53,7 @@ Carta _rondaCombate({
         if (s.enemyVida! <= 0) {
           s.enemyVida = null;
           s.enemyMaxVida = null;
+          s.defeatedEnemies++;
           return Consecuencia(
             deltaPoder: 5,
             deltaTiempo: -5,
@@ -80,6 +81,7 @@ Carta _rondaCombate({
         if (s.enemyVida! <= 0) {
           s.enemyVida = null;
           s.enemyMaxVida = null;
+          s.defeatedEnemies++;
           return Consecuencia(
             deltaPoder: 8,
             deltaTiempo: -5,
@@ -122,6 +124,7 @@ Carta _iniciarCombate({
         if (s.enemyVida! <= 0) {
           s.enemyVida = null;
           s.enemyMaxVida = null;
+          s.defeatedEnemies++;
           return Consecuencia(
             deltaPoder: 5,
             deltaTiempo: -3,
@@ -328,14 +331,20 @@ final _cartaPuertaFinal = Carta(
   texto: 'Una gran puerta bloquea el camino.\nAl otro lado se oye algo.',
   opcionIzquierda: 'Intentar abrirla',
   opcionDerecha: 'Darle una patada',
-  efectoIzquierda: (s) => Consecuencia(
-    deltaTiempo: -3,
-    onApply: (st) => _ir(st, _cartaNigromante),
-  ),
-  efectoDerecha: (s) => Consecuencia(
-    deltaTiempo: -3,
-    onApply: (st) => _ir(st, _cartaNigromante),
-  ),
+  efectoIzquierda: (s) {
+    s.puertaFinalAlcanzada = true;
+    return Consecuencia(
+      deltaTiempo: -3,
+      onApply: (st) => _ir(st, _cartaNigromante),
+    );
+  },
+  efectoDerecha: (s) {
+    s.puertaFinalAlcanzada = true;
+    return Consecuencia(
+      deltaTiempo: -3,
+      onApply: (st) => _ir(st, _cartaNigromante),
+    );
+  },
 );
 
 final _cartaCantimplora = Carta(
@@ -344,6 +353,7 @@ final _cartaCantimplora = Carta(
   opcionIzquierda: 'Beber',
   opcionDerecha: 'Cogerla y beber',
   efectoIzquierda: (s) {
+    s.cantimploraEncontrada = true;
     final buena = _conSuerte(s, 0.5);
     return Consecuencia(
       deltaVida: buena ? 15 : -10,
@@ -355,6 +365,7 @@ final _cartaCantimplora = Carta(
     );
   },
   efectoDerecha: (s) {
+    s.cantimploraEncontrada = true;
     final buena = _conSuerte(s, 0.5);
     return Consecuencia(
       deltaVida: buena ? 15 : -10,
@@ -472,14 +483,20 @@ final _cartaAventurero = Carta(
   texto: 'Un aventurero herido pide ayuda.\nParece en apuros.',
   opcionIzquierda: 'No ayudar',
   opcionDerecha: 'Ayudar',
-  efectoIzquierda: (s) => Consecuencia(
-    deltaTiempo: -3,
-    onApply: (st) => _ir(st, _cartaCofre),
-  ),
-  efectoDerecha: (s) => Consecuencia(
-    deltaTiempo: -3,
-    onApply: (st) => _ir(st, _cartaCombateAventurero),
-  ),
+  efectoIzquierda: (s) {
+    s.aventureroEncontrado = true;
+    return Consecuencia(
+      deltaTiempo: -3,
+      onApply: (st) => _ir(st, _cartaCofre),
+    );
+  },
+  efectoDerecha: (s) {
+    s.aventureroEncontrado = true;
+    return Consecuencia(
+      deltaTiempo: -3,
+      onApply: (st) => _ir(st, _cartaCombateAventurero),
+    );
+  },
 );
 
 final _cartaPrimerPasillo = Carta(

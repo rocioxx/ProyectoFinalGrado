@@ -16,8 +16,12 @@ class StatsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final vPad = (size.height * 0.055).clamp(24.0, 55.0);
+    final barHeight = (size.height * 0.14).clamp(80.0, 130.0);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 50),
+      padding: EdgeInsets.symmetric(horizontal: 32, vertical: vPad),
       decoration: const BoxDecoration(
         color: Color.fromARGB(255, 29, 20, 13),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -25,10 +29,10 @@ class StatsPanel extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _StatBar(label: 'Vida', color: const Color(0xFFE8706A), value: vida),
-          _StatBar(label: 'Poder', color: const Color(0xFFE85D04), value: poder),
-          _StatBar(label: 'Tiempo', color: const Color(0xFF5B9BD5), value: tiempo),
-          _StatBar(label: 'Suerte', color: const Color(0xFF95D44A), value: suerte),
+          _StatBar(label: 'Vida', color: const Color(0xFFE8706A), value: vida, barHeight: barHeight),
+          _StatBar(label: 'Poder', color: const Color(0xFFE85D04), value: poder, barHeight: barHeight),
+          _StatBar(label: 'Tiempo', color: const Color(0xFF5B9BD5), value: tiempo, barHeight: barHeight),
+          _StatBar(label: 'Suerte', color: const Color(0xFF95D44A), value: suerte, barHeight: barHeight),
         ],
       ),
     );
@@ -40,11 +44,13 @@ class _StatBar extends StatelessWidget {
     required this.label,
     required this.color,
     required this.value,
+    required this.barHeight,
   });
 
   final String label;
   final Color color;
   final double value;
+  final double barHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +71,7 @@ class _StatBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
           child: SizedBox(
             width: 16,
-            height: 120,
+            height: barHeight,
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: [

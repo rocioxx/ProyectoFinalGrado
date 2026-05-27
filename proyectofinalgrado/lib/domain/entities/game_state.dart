@@ -19,6 +19,9 @@ class GameState {
     this.iniciada = false,
     this.enemyVida,
     this.enemyMaxVida,
+    this.cantimploraEncontrada = false,
+    this.aventureroEncontrado = false,
+    this.puertaFinalAlcanzada = false,
   });
 
   double vida;
@@ -42,4 +45,7 @@ class GameState {
   bool iniciada;
   double? enemyVida;
   double? enemyMaxVida;
+  bool cantimploraEncontrada;
+  bool aventureroEncontrado;
+  bool puertaFinalAlcanzada;
 }

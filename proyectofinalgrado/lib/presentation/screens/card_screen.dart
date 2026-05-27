@@ -14,6 +14,7 @@ import '../widgets/scenario_text.dart';
 import '../widgets/stats_panel.dart';
 import '../widgets/swipe_card.dart';
 import 'game_over_screen.dart';
+import 'options_screen.dart';
 import 'win_screen.dart';
 
 class CardScreen extends StatelessWidget {
@@ -50,6 +51,8 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
   late Carta _cartaActual;
   final _adService = AdService();
   int _ruletasRestantes = 2;
+
+  bool _notaVisible = true;
 
   // ── Overlay de consecuencias ──────────────────────────────────────────────
   List<({String texto, Color color})> _consecuencias = [];
@@ -116,7 +119,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
   late Animation<double> _exitRot;
   late Animation<double> _returnAnim;
 
-  static const _threshold = 80.0;
+  double _threshold = 80.0;
 
   @override
   void initState() {
@@ -254,6 +257,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
       _x = 0;
       _phase = _Phase.entering;
       _cartaActual = playing.cartaActual;
+      _notaVisible = true;
     });
 
     await _enterCtrl.forward(from: 0);
@@ -292,6 +296,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
       _x = 0;
       _phase = _Phase.entering;
       _cartaActual = newState.cartaActual;
+      _notaVisible = true;
     });
 
     await _enterCtrl.forward(from: 0);
@@ -304,6 +309,9 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     final size = MediaQuery.sizeOf(context);
     _screenWidth = size.width;
     _screenHeight = size.height;
+    _threshold = (_screenWidth * 0.20).clamp(60.0, 100.0);
+    final cardOffsetY = _screenHeight * 0.155;
+    final hPad = _screenWidth * 0.08;
 
     final card = SwipeCard(imagen: _cartaActual.imagen);
 
@@ -322,7 +330,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                       _x.abs() >= _threshold ? _swipe() : _returnToCenter(),
               child: switch (_phase) {
                 _Phase.idle => Transform.translate(
-                    offset: Offset(_x, 130.0),
+                    offset: Offset(_x, cardOffsetY),
                     child: Transform.rotate(
                       angle:
                           (_x / (_screenWidth * 0.6)).clamp(-1.0, 1.0) * 0.3,
@@ -333,7 +341,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     animation: _exitCtrl,
                     child: card,
                     builder: (_, child) => Transform.translate(
-                      offset: _exitOffset.value + const Offset(0, 130.0),
+                      offset: _exitOffset.value + Offset(0, cardOffsetY),
                       child: Transform.rotate(
                         angle: _exitRot.value,
                         child: child,
@@ -344,7 +352,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     animation: _returnCtrl,
                     child: card,
                     builder: (_, child) => Transform.translate(
-                      offset: Offset(_returnAnim.value, 130.0),
+                      offset: Offset(_returnAnim.value, cardOffsetY),
                       child: Transform.rotate(
                         angle: (_returnAnim.value / (_screenWidth * 0.6))
                                 .clamp(-1.0, 1.0) *
@@ -359,7 +367,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     builder: (_, child) => Opacity(
                       opacity: _enterOpacity.value,
                       child: Transform.translate(
-                        offset: Offset(0, _enterY.value + 130.0),
+                        offset: Offset(0, _enterY.value + cardOffsetY),
                         child: Transform.scale(
                           scale: _enterScale.value,
                           child: child,
@@ -372,7 +380,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     animation: _spinCtrl,
                     child: card,
                     builder: (_, child) => Transform.translate(
-                      offset: const Offset(0, 130.0),
+                      offset: Offset(0, cardOffsetY),
                       child: Transform(
                         transform: Matrix4.identity()
                           ..setEntry(3, 2, 0.001)
@@ -394,17 +402,17 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                 children: [
                   if (gs.enemyVida != null)
                     Positioned(
-                      left: 32,
-                      right: 32,
-                      top: _screenHeight * 0.27,
+                      left: hPad,
+                      right: hPad,
+                      top: _screenHeight * 0.42,
                       child: _EnemyHealthBar(
                         vida: gs.enemyVida!,
                         maxVida: gs.enemyMaxVida!,
                       ),
                     ),
                   Positioned(
-                    left: 32,
-                    right: 32,
+                    left: hPad,
+                    right: hPad,
                     top: _screenHeight * 0.33,
                     child: ScenarioText(
                       carta: _cartaActual,
@@ -413,20 +421,62 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                       threshold: _threshold,
                     ),
                   ),
-                  if (_cartaActual.nota != null)
-                    Positioned(
-                      left: 24,
-                      right: 24,
-                      top: _screenHeight * 0.72,
-                      child: _NotaCard(texto: _cartaActual.nota!.call(gs)),
+                  if (_cartaActual.nota != null && _notaVisible)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black54,
+                        child: Center(
+                          child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: hPad),
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                            decoration: BoxDecoration(
+                              color: const Color(0xF01A1208),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: const Color(0xFFD4AF37), width: 1.5),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Align(
+                                  alignment: Alignment.topRight,
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        setState(() => _notaVisible = false),
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Color(0xFFD4AF37),
+                                      size: 22,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _cartaActual.nota!.call(gs),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontSize: 14,
+                                    color: Color(0xFFD4AF37),
+                                    height: 1.6,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   Align(
                     alignment: Alignment.topCenter,
-                    child: StatsPanel(
-                      vida: gs.vida,
-                      poder: gs.poder,
-                      tiempo: gs.tiempo,
-                      suerte: gs.suerte,
+                    child: SafeArea(
+                      bottom: false,
+                      child: StatsPanel(
+                        vida: gs.vida,
+                        poder: gs.poder,
+                        tiempo: gs.tiempo,
+                        suerte: gs.suerte,
+                      ),
                     ),
                   ),
                 ],
@@ -439,8 +489,8 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
           // ── Overlay de consecuencias ───────────────────────────────────
           if (_consecuencias.isNotEmpty)
             Positioned(
-              left: 32,
-              right: 32,
+              left: hPad,
+              right: hPad,
               top: _screenHeight * 0.28,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 400),
@@ -495,6 +545,32 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     _cartaActual.saltable,
                 restantes: _ruletasRestantes,
                 onTap: _onRuletaTap,
+              ),
+            ),
+          ),
+
+          // ── Botón opciones ─────────────────────────────────────────────
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const OptionsScreen()),
+              ),
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF1A1208),
+                  border: Border.all(color: const Color(0x88D4AF37), width: 1.5),
+                ),
+                child: const Icon(
+                  Icons.settings_outlined,
+                  color: Color(0xFFD4AF37),
+                  size: 22,
+                ),
               ),
             ),
           ),
@@ -622,32 +698,3 @@ class _EnemyHealthBar extends StatelessWidget {
   }
 }
 
-// ── Cuadro de nota informativa ────────────────────────────────────────────────
-
-class _NotaCard extends StatelessWidget {
-  const _NotaCard({required this.texto});
-
-  final String texto;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xCC1A1208),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0x88D4AF37), width: 1),
-      ),
-      child: Text(
-        texto,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontFamily: 'Inconsolata',
-          fontSize: 13,
-          color: Color(0xFFD4AF37),
-          height: 1.5,
-        ),
-      ),
-    );
-  }
-}

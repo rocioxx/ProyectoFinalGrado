@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entities/game_state.dart';
+import '../cubits/game_cubit.dart';
+import '../cubits/game_ui_state.dart';
 
 class MissionsPanel extends StatefulWidget {
   const MissionsPanel({super.key});
@@ -12,13 +16,6 @@ class _MissionsPanelState extends State<MissionsPanel>
   bool _expanded = false;
   late final AnimationController _ctrl;
   late final Animation<double> _fadeAnim;
-
-  static const _misiones = [
-    _Mision(titulo: 'Derrotar al jefe final', completada: false),
-    _Mision(titulo: 'Recoger 1 poción', completada: false),
-    _Mision(titulo: 'Explorar la mazmorra', completada: false),
-    _Mision(titulo: 'Hablar con el herrero', completada: false),
-  ];
 
   @override
   void initState() {
@@ -41,67 +38,95 @@ class _MissionsPanelState extends State<MissionsPanel>
     _expanded ? _ctrl.forward() : _ctrl.reverse();
   }
 
+  List<_Mision> _buildMisiones(GameState gs) => [
+        _Mision(titulo: 'Derrotar al Nigromante', completada: gs.victoria),
+        _Mision(
+            titulo: 'Llegar a la puerta final',
+            completada: gs.puertaFinalAlcanzada),
+        _Mision(
+            titulo: 'Vencer todos los combates',
+            completada: gs.defeatedEnemies >= 3),
+        _Mision(
+            titulo: 'Encontrar la cantimplora',
+            completada: gs.cantimploraEncontrada),
+        _Mision(
+            titulo: 'Hablar con el aventurero',
+            completada: gs.aventureroEncontrado),
+      ];
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: _toggle,
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              borderRadius: BorderRadius.circular(10),
+    final panelWidth =
+        (MediaQuery.sizeOf(context).width * 0.60).clamp(180.0, 260.0);
+
+    return BlocBuilder<GameCubit, GameUiState>(
+      buildWhen: (_, s) => s is GamePlaying,
+      builder: (_, state) {
+        final gs =
+            state is GamePlaying ? state.gameState : GameState();
+        final misiones = _buildMisiones(gs);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: _toggle,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A1A),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.assignment_outlined,
+                  color: Color(0xFFD4AF37),
+                  size: 24,
+                ),
+              ),
             ),
-            child: const Icon(
-              Icons.assignment_outlined,
-              color: Color(0xFFD4AF37),
-              size: 24,
-            ),
-          ),
-        ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
-          alignment: Alignment.topCenter,
-          child: _expanded
-              ? FadeTransition(
-                  opacity: _fadeAnim,
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 6),
-                    width: 230,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1A1A1A),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(14, 12, 14, 6),
-                          child: Text(
-                            'Misiones',
-                            style: TextStyle(
-                              color: Color(0xFFD4AF37),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              alignment: Alignment.topCenter,
+              child: _expanded
+                  ? FadeTransition(
+                      opacity: _fadeAnim,
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 6),
+                        width: panelWidth,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A1A1A),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const Divider(color: Color(0xFF333333), height: 1),
-                        ..._misiones.map((m) => _MisionTile(mision: m)),
-                        const SizedBox(height: 6),
-                      ],
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ),
-      ],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.fromLTRB(14, 12, 14, 6),
+                              child: Text(
+                                'Misiones',
+                                style: TextStyle(
+                                  color: Color(0xFFD4AF37),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                            const Divider(color: Color(0xFF333333), height: 1),
+                            ...misiones.map((m) => _MisionTile(mision: m)),
+                            const SizedBox(height: 6),
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        );
+      },
     );
   }
 }
