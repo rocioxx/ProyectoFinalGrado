@@ -27,7 +27,6 @@ class AnalyticsService {
         'session_id': sessionId,
         'ab_group': abGroup,
       });
-      print('Analytics OK: $tipo [session=$sessionId] [ab=$abGroup]');
     } catch (e, st) {
       print('Analytics ERROR ($tipo): $e\n$st');
     }

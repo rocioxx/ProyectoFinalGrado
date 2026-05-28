@@ -2,7 +2,6 @@ import 'game_state.dart';
 
 class Consecuencia {
   const Consecuencia({
-    this.texto = '',
     this.deltaVida = 0,
     this.deltaSuerte = 0,
     this.deltaTiempo = 0,
@@ -10,7 +9,6 @@ class Consecuencia {
     this.onApply,
   });
 
-  final String texto;
   final double deltaVida;
   final double deltaSuerte;
   final double deltaTiempo;

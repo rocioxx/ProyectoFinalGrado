@@ -28,7 +28,6 @@ class AdService {
         onAdLoaded: (ad) {
           _ad = ad;
           _isLoaded = true;
-          print('AdMob: anuncio cargado OK');
         },
         onAdFailedToLoad: (error) {
           _isLoaded = false;

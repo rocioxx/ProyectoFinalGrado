@@ -22,6 +22,5 @@ class GameRepositoryImpl implements IGameRepository {
     state.poder = (state.poder + consecuencia.deltaPoder).clamp(0.0, 10.0).roundToDouble();
 
     consecuencia.onApply?.call(state);
-    state.textoResolucion = consecuencia.texto;
   }
 }

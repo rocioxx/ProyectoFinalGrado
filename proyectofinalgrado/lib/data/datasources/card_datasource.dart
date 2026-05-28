@@ -198,6 +198,7 @@ Carta _encuentroEnemigoCombate(GameState s, Carta siguiente) {
       suerte: 0.0,
       victoria:
           'Los huesos del esqueleto se desmoronan.\nEl camino queda libre.',
+      image: 'lib/fotos/esqueleto.jpg',
     ),
     (
       nombre: 'Un goblin',
@@ -206,6 +207,7 @@ Carta _encuentroEnemigoCombate(GameState s, Carta siguiente) {
       dano: 6.0,
       suerte: 0.0,
       victoria: 'El goblin chilla y se desploma.\nHas salido victorioso.',
+      image: 'lib/fotos/goblin.jpg',
     ),
     (
       nombre: 'Un slime',
@@ -214,14 +216,16 @@ Carta _encuentroEnemigoCombate(GameState s, Carta siguiente) {
       dano: 5.0,
       suerte: 10.0,
       victoria: 'El slime se disuelve en el suelo.\nYa no bloquea el paso.',
+      image: 'lib/fotos/slime.jpg',
     ),
     (
-      nombre: 'Una arana',
+      nombre: 'Una araña',
       imagen: 'lib/fotos/araña.jpg',
       vida: 30.0,
       dano: 7.0,
       suerte: 10.0,
-      victoria: 'La arana cae retorciendose.\nSu veneno ya no te alcanzara.',
+      victoria: 'La araña cae retorciendose.\nSu veneno ya no te alcanzara.',
+      image: 'lib/fotos/araña.jpg',
     ),
   ];
 
@@ -259,9 +263,9 @@ final _cartaContinuar = Carta(
 final _cartaVictoriaNigromante = Carta(
   imagen: 'lib/fotos/nigromante.png',
   saltable: false,
-  texto: 'El nigromante cae al suelo.\nLa mazmorra tiembla. Has ganado.',
-  opcionIzquierda: 'Salir',
-  opcionDerecha: 'Salir',
+  texto: 'El nigromante cae al suelo.\n¡Has ganado!',
+  opcionIzquierda: 'Salir de la mazmorra',
+  opcionDerecha: 'Salir de la mazmorra',
   efectoIzquierda: (s) => Consecuencia(onApply: (st) => st.victoria = true),
   efectoDerecha: (s) => Consecuencia(onApply: (st) => st.victoria = true),
 );
@@ -360,7 +364,7 @@ final _cartaInicioNigromante = Carta(
 final _cartaNigromanteHabla = Carta(
   imagen: 'lib/fotos/nigromante.png',
   saltable: false,
-  texto: 'El nigromante rie y te empuja.\nNo hay salida.',
+  texto: 'El nigromante no te deja reaccionar.\nNo hay salida.',
   opcionIzquierda: 'Resistir',
   opcionDerecha: 'Reaccionar',
   efectoIzquierda: (s) => Consecuencia(
@@ -376,7 +380,7 @@ final _cartaNigromanteHabla = Carta(
 final _cartaNigromante = Carta(
   imagen: 'lib/fotos/nigromante.png',
   saltable: false,
-  texto: 'Ante ti esta el nigromante.\nSenor de esta mazmorra.',
+  texto: 'Ante ti esta el nigromante.\nSeñor de esta mazmorra.',
   opcionIzquierda: 'No pelear',
   opcionDerecha: 'Luchar',
   efectoIzquierda: (s) => Consecuencia(
@@ -467,7 +471,7 @@ final Carta _cartaPasilloOscuro = Carta(
 
 final _cartaMimico = Carta(
   imagen: 'lib/fotos/mimico.jpg',
-  texto: 'El cofre tiene dientes.\nEs un mimico.',
+  texto: 'El cofre tiene dientes.\nEs un mímico.',
   opcionIzquierda: 'Intentar huir',
   opcionDerecha: 'Luchar',
   efectoIzquierda: (s) => Consecuencia(
@@ -480,16 +484,36 @@ final _cartaMimico = Carta(
     onApply: (st) => _ir(
       st,
       _iniciarCombate(
-        nombre: 'El mimico',
+        nombre: 'El mímico',
         imagen: 'lib/fotos/mimico.jpg',
         vida: 35,
         dano: 12,
         onVictoria: _victoriaEnemigo(
-          texto: 'El mimico se desmorona.\nEl cofre era una trampa.',
+          texto: 'El mímico se desmorona.\nEl cofre era una trampa.',
           siguiente: _cartaPasilloOscuro,
         ),
       ),
     ),
+  ),
+);
+
+Carta _cartaCofreAbierto({required bool esSuerte}) => Carta(
+  imagen: 'lib/fotos/cofre pocion.jpg',
+  texto: esSuerte
+      ? 'El cofre contiene una poción.'
+      : 'El cofre contiene una poción.',
+  opcionIzquierda: 'Beber',
+  opcionDerecha: 'Beber',
+  efectoIzquierda: (s) => Consecuencia(
+    deltaSuerte: esSuerte ? 10 : 0,
+    deltaTiempo: -3,
+    onApply: (st) => _ir(st, _encuentroEnemigoCombate(st, _cartaPasilloOscuro)),
+  ),
+  efectoDerecha: (s) => Consecuencia(
+    deltaSuerte: esSuerte ? 10 : 0,
+    deltaPoder: esSuerte ? 0 : -8,
+    deltaTiempo: -3,
+    onApply: (st) => _ir(st, _encuentroEnemigoCombate(st, _cartaPasilloOscuro)),
   ),
 );
 
@@ -504,14 +528,10 @@ final _cartaCofre = Carta(
   ),
   efectoDerecha: (s) {
     if (_conSuerte(s, s.abGroup == 'B' ? 0.70 : 0.50)) {
-      // Poción: random entre quitar poder o dar suerte
       final esSuerte = _rng.nextBool();
       return Consecuencia(
-        deltaSuerte: esSuerte ? 10 : 0,
-        deltaPoder: esSuerte ? 0 : -8,
         deltaTiempo: -3,
-        onApply: (st) =>
-            _ir(st, _encuentroEnemigoCombate(st, _cartaPasilloOscuro)),
+        onApply: (st) => _ir(st, _cartaCofreAbierto(esSuerte: esSuerte)),
       );
     }
     return Consecuencia(
@@ -524,6 +544,7 @@ final _cartaCofre = Carta(
 // Victoria del aventurero: otorga vida y continua con un encuentro enemigo
 final _cartaVictoriaAventurero = Carta(
   texto: 'Has derrotado al aventurero.\nSigues adelante.',
+  imagen: 'lib/fotos/aventurero.png',
   opcionIzquierda: 'Continuar',
   opcionDerecha: 'Continuar',
   efectoIzquierda: (s) => Consecuencia(
