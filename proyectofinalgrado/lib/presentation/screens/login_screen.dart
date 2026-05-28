@@ -104,7 +104,9 @@ class _LoginViewState extends State<_LoginView> {
           ),
           SafeArea(
             child: Center(
-              child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 28),
                 // BlocConsumer = listener + builder en un solo widget
                 child: BlocConsumer<AuthCubit, AuthUiState>(
@@ -318,6 +320,7 @@ class _LoginViewState extends State<_LoginView> {
               ),
             ),
           ),
+        ),
         ],
       ),
     );
@@ -366,7 +369,7 @@ class _GoldDot extends StatelessWidget {
 
 // ── Campo de texto ────────────────────────────────────────────────────────────
 
-class _Campo extends StatelessWidget {
+class _Campo extends StatefulWidget {
   const _Campo({
     required this.controller,
     required this.label,
@@ -386,21 +389,39 @@ class _Campo extends StatelessWidget {
   final FocusNode? focusNode;
 
   @override
+  State<_Campo> createState() => _CampoState();
+}
+
+class _CampoState extends State<_Campo> {
+  bool _visible = false;
+
+  @override
   Widget build(BuildContext context) {
+    final isPassword = widget.obscure;
     return TextField(
-      controller: controller,
-      focusNode: focusNode,
-      obscureText: obscure,
-      keyboardType: keyboardType,
-      enabled: enabled,
+      controller: widget.controller,
+      focusNode: widget.focusNode,
+      obscureText: isPassword && !_visible,
+      keyboardType: widget.keyboardType,
+      enabled: widget.enabled,
       style: TextStyle(
-        color: enabled ? Colors.white : const Color(0xFF777777),
+        color: widget.enabled ? Colors.white : const Color(0xFF777777),
         fontSize: 15,
       ),
       decoration: InputDecoration(
-        labelText: label,
+        labelText: widget.label,
         labelStyle: const TextStyle(color: Color(0xFF666666), fontSize: 14),
-        prefixIcon: Icon(icon, color: const Color(0xFF555555), size: 20),
+        prefixIcon: Icon(widget.icon, color: const Color(0xFF555555), size: 20),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  _visible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  color: const Color(0xFF777777),
+                  size: 20,
+                ),
+                onPressed: () => setState(() => _visible = !_visible),
+              )
+            : null,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Color(0xFF333333)),

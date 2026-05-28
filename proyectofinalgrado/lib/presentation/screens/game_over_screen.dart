@@ -15,45 +15,93 @@ class GameOverScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 29, 20, 13),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                'lib/fotos/derrota.png',
-                width: size.width * 0.75,
-                fit: BoxFit.contain,
-              ),
-              SizedBox(height: size.height * 0.03),
-              _MisionesResumen(gameState: gameState),
-              SizedBox(height: size.height * 0.035),
-              GestureDetector(
-                onTap: () => Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PlayScreen()),
-                  (_) => false,
+      body: size.width > size.height
+          ? Row(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Image.asset(
+                      'lib/fotos/derrota.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
-                child: Image.asset(
-                  'lib/fotos/menu.png',
-                  width: btnWidth * 0.7,
-                  fit: BoxFit.contain,
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _MisionesResumen(gameState: gameState),
+                          const SizedBox(height: 24),
+                          GestureDetector(
+                            onTap: () => Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (_) => const PlayScreen()),
+                              (_) => false,
+                            ),
+                            child: Image.asset(
+                              'lib/fotos/menu.png',
+                              width: btnWidth * 0.7,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () => exit(0),
+                            child: Image.asset(
+                              'lib/fotos/salir.png',
+                              width: btnWidth * 0.7,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'lib/fotos/derrota.png',
+                      width: size.width * 0.75,
+                      fit: BoxFit.contain,
+                    ),
+                    SizedBox(height: size.height * 0.03),
+                    _MisionesResumen(gameState: gameState),
+                    SizedBox(height: size.height * 0.035),
+                    GestureDetector(
+                      onTap: () => Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PlayScreen()),
+                        (_) => false,
+                      ),
+                      child: Image.asset(
+                        'lib/fotos/menu.png',
+                        width: btnWidth * 0.7,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    SizedBox(height: size.height * 0.012),
+                    GestureDetector(
+                      onTap: () => exit(0),
+                      child: Image.asset(
+                        'lib/fotos/salir.png',
+                        width: btnWidth * 0.7,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: size.height * 0.012),
-              GestureDetector(
-                onTap: () => exit(0),
-                child: Image.asset(
-                  'lib/fotos/salir.png',
-                  width: btnWidth * 0.7,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

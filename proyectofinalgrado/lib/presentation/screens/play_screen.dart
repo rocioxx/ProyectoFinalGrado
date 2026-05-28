@@ -65,39 +65,65 @@ class _PlayScreenState extends State<PlayScreen> {
 
           // ── Contenido ─────────────────────────────────────────────────────
           SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(height: topSpacing),
-
-                SizedBox(height: size.height * 0.016),
-                Image.asset(
-                  'lib/fotos/inicio.png',
-                  width: logoWidth,
-                  height: size.height * 0.50,
-                  alignment: Alignment.topCenter,
-                  fit: BoxFit.contain,
-                ),
-
-                // Botón abajo — altura fija para que no cambie de posición
-                GestureDetector(
-                  onTap: () => Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+            child: size.width > size.height
+                ? Row(
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: Image.asset(
+                            'lib/fotos/inicio.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: GestureDetector(
+                            onTap: () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const LoginScreen()),
+                            ),
+                            child: Image.asset(
+                              'lib/fotos/entrar.png',
+                              width: size.width * 0.38,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: topSpacing),
+                      SizedBox(height: size.height * 0.016),
+                      Image.asset(
+                        'lib/fotos/inicio.png',
+                        width: logoWidth,
+                        height: size.height * 0.50,
+                        alignment: Alignment.topCenter,
+                        fit: BoxFit.contain,
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const LoginScreen()),
+                        ),
+                        child: SizedBox(
+                          width: (size.width * 0.90).clamp(280.0, 460.0),
+                          height: (size.height * 0.20).clamp(120.0, 200.0),
+                          child: Image.asset(
+                            'lib/fotos/entrar.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: bottomSpacing),
+                    ],
                   ),
-                  child: SizedBox(
-                    width: (size.width * 0.90).clamp(280.0, 460.0),
-                    height: (size.height * 0.20).clamp(120.0, 200.0),
-                    child: Image.asset(
-                      'lib/fotos/entrar.png',
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: bottomSpacing),
-              ],
-            ),
           ),
         ],
       ),

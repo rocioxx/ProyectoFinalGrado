@@ -312,8 +312,12 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     _screenWidth = size.width;
     _screenHeight = size.height;
     _threshold = (_screenWidth * 0.20).clamp(60.0, 100.0);
-    final cardOffsetY = _screenHeight * 0.20;
+    final isLandscape = size.width > size.height;
+    final cardBaseX = isLandscape ? -size.width * 0.23 : 0.0;
+    final cardOffsetY = isLandscape ? 0.0 : size.height * 0.20;
     final hPad = _screenWidth * 0.08;
+    final rightLeft = isLandscape ? size.width * 0.54 : hPad;
+    final rightRight = isLandscape ? 12.0 : hPad;
 
     final card = SwipeCard(imagen: _cartaActual.imagen);
 
@@ -332,7 +336,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                       _x.abs() >= _threshold ? _swipe() : _returnToCenter(),
               child: switch (_phase) {
                 _Phase.idle => Transform.translate(
-                    offset: Offset(_x, cardOffsetY),
+                    offset: Offset(cardBaseX + _x, cardOffsetY),
                     child: Transform.rotate(
                       angle:
                           (_x / (_screenWidth * 0.6)).clamp(-1.0, 1.0) * 0.3,
@@ -343,7 +347,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     animation: _exitCtrl,
                     child: card,
                     builder: (_, child) => Transform.translate(
-                      offset: _exitOffset.value + Offset(0, cardOffsetY),
+                      offset: _exitOffset.value + Offset(cardBaseX, cardOffsetY),
                       child: Transform.rotate(
                         angle: _exitRot.value,
                         child: child,
@@ -354,7 +358,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     animation: _returnCtrl,
                     child: card,
                     builder: (_, child) => Transform.translate(
-                      offset: Offset(_returnAnim.value, cardOffsetY),
+                      offset: Offset(cardBaseX + _returnAnim.value, cardOffsetY),
                       child: Transform.rotate(
                         angle: (_returnAnim.value / (_screenWidth * 0.6))
                                 .clamp(-1.0, 1.0) *
@@ -369,7 +373,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                     builder: (_, child) => Opacity(
                       opacity: _enterOpacity.value,
                       child: Transform.translate(
-                        offset: Offset(0, _enterY.value + cardOffsetY),
+                        offset: Offset(cardBaseX, _enterY.value + cardOffsetY),
                         child: Transform.scale(
                           scale: _enterScale.value,
                           child: child,
@@ -377,12 +381,11 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                // Giro horizontal: rotación en el eje Y con perspectiva
                 _Phase.spinning => AnimatedBuilder(
                     animation: _spinCtrl,
                     child: card,
                     builder: (_, child) => Transform.translate(
-                      offset: Offset(0, cardOffsetY),
+                      offset: Offset(cardBaseX, cardOffsetY),
                       child: Transform(
                         transform: Matrix4.identity()
                           ..setEntry(3, 2, 0.001)
@@ -404,8 +407,8 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                 children: [
                   if (gs.enemyVida != null)
                     Positioned(
-                      left: hPad,
-                      right: hPad,
+                      left: rightLeft,
+                      right: rightRight,
                       top: _screenHeight * 0.43,
                       child: _EnemyHealthBar(
                         vida: gs.enemyVida!,
@@ -413,8 +416,8 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                       ),
                     ),
                   Positioned(
-                    left: hPad,
-                    right: hPad,
+                    left: rightLeft,
+                    right: rightRight,
                     top: _screenHeight * 0.38,
                     child: ScenarioText(
                       carta: _cartaActual,
@@ -440,19 +443,6 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Align(
-                                  alignment: Alignment.topRight,
-                                  child: GestureDetector(
-                                    onTap: () =>
-                                        setState(() => _notaVisible = false),
-                                    child: const Icon(
-                                      Icons.close,
-                                      color: Color(0xFFD4AF37),
-                                      size: 22,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
                                 Text(
                                   _cartaActual.nota!.call(gs),
                                   textAlign: TextAlign.center,
@@ -463,36 +453,67 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
                                     height: 1.6,
                                   ),
                                 ),
+                                const SizedBox(height: 16),
+                                GestureDetector(
+                                  onTap: () =>
+                                      setState(() => _notaVisible = false),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Color(0xFFD4AF37),
+                                    size: 28,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                         ),
                       ),
                     ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: SafeArea(
-                      bottom: false,
-                      child: StatsPanel(
-                        vida: gs.vida,
-                        poder: gs.poder,
-                        tiempo: gs.tiempo,
-                        suerte: gs.suerte,
+                  if (!isLandscape)
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: SafeArea(
+                        bottom: false,
+                        child: StatsPanel(
+                          vida: gs.vida,
+                          poder: gs.poder,
+                          tiempo: gs.tiempo,
+                          suerte: gs.suerte,
+                        ),
                       ),
                     ),
-                  ),
+                  if (isLandscape)
+                    Positioned(
+                      left: rightLeft,
+                      right: rightRight,
+                      top: 8,
+                      child: SafeArea(
+                        bottom: false,
+                        child: StatsPanel(
+                          vida: gs.vida,
+                          poder: gs.poder,
+                          tiempo: gs.tiempo,
+                          suerte: gs.suerte,
+                        ),
+                      ),
+                    ),
                 ],
               );
             },
           ),
 
-          const Positioned(top: 48, right: 16, child: MissionsPanel()),
+          Positioned(
+            top: 48,
+            right: isLandscape ? null : 16,
+            left: isLandscape ? 8 : null,
+            child: const MissionsPanel(),
+          ),
 
           // ── Overlay de consecuencias ───────────────────────────────────
           if (_consecuencias.isNotEmpty)
             Positioned(
-              left: hPad,
-              right: hPad,
+              left: rightLeft,
+              right: rightRight,
               top: _screenHeight * 0.28,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 400),

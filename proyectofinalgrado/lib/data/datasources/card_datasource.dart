@@ -18,21 +18,23 @@ bool _conSuerte(GameState s, double base) =>
 
 Carta _victoriaEnemigo({
   required String texto,
-  required Carta siguiente,
+  Carta? siguiente,
+  String? imagen,
   double deltaSuerte = 0,
 }) => Carta(
   texto: texto,
+  imagen: imagen,
   opcionIzquierda: 'Continuar',
   opcionDerecha: 'Continuar',
   efectoIzquierda: (s) => Consecuencia(
     deltaTiempo: -3,
     deltaSuerte: deltaSuerte,
-    onApply: (st) => _ir(st, siguiente),
+    onApply: siguiente != null ? (st) => _ir(st, siguiente) : null,
   ),
   efectoDerecha: (s) => Consecuencia(
     deltaTiempo: -3,
     deltaSuerte: deltaSuerte,
-    onApply: (st) => _ir(st, siguiente),
+    onApply: siguiente != null ? (st) => _ir(st, siguiente) : null,
   ),
 );
 
@@ -55,6 +57,17 @@ Carta _rondaCombate({
   opcionDerecha: 'Atacar',
   efectoIzquierda: (s) {
     if (_conSuerte(s, 0.5)) {
+      s.enemyVida = (s.enemyVida! - 12).clamp(0.0, s.enemyMaxVida!);
+      if (s.enemyVida! <= 0) {
+        s.enemyVida = null;
+        s.enemyMaxVida = null;
+        s.defeatedEnemies++;
+        return Consecuencia(
+          deltaPoder: 5,
+          deltaTiempo: -3,
+          onApply: (st) => _ir(st, onVictoria),
+        );
+      }
       return Consecuencia(
         deltaTiempo: -3,
         onApply: (st) => _ir(
@@ -84,7 +97,7 @@ Carta _rondaCombate({
     );
   },
   efectoDerecha: (s) {
-    final danio = (s.poder * 1.0).clamp(5.0, 30.0);
+    final danio = s.poder;
     s.enemyVida = (s.enemyVida! - danio).clamp(0.0, s.enemyMaxVida!);
     if (s.enemyVida! <= 0) {
       s.enemyVida = null;
@@ -127,6 +140,17 @@ Carta _iniciarCombate({
     s.enemyVida = vida;
     s.enemyMaxVida = vida;
     if (_conSuerte(s, 0.5)) {
+      s.enemyVida = (s.enemyVida! - 12).clamp(0.0, s.enemyMaxVida!);
+      if (s.enemyVida! <= 0) {
+        s.enemyVida = null;
+        s.enemyMaxVida = null;
+        s.defeatedEnemies++;
+        return Consecuencia(
+          deltaPoder: 5,
+          deltaTiempo: -3,
+          onApply: (st) => _ir(st, onVictoria),
+        );
+      }
       return Consecuencia(
         deltaTiempo: -3,
         onApply: (st) => _ir(
@@ -158,7 +182,7 @@ Carta _iniciarCombate({
   efectoDerecha: (s) {
     s.enemyVida = vida;
     s.enemyMaxVida = vida;
-    final danio = (s.poder * 1.0).clamp(5.0, 30.0);
+    final danio = s.poder;
     s.enemyVida = (s.enemyVida! - danio).clamp(0.0, vida);
     if (s.enemyVida! <= 0) {
       s.enemyVida = null;
@@ -198,7 +222,6 @@ Carta _encuentroEnemigoCombate(GameState s, Carta siguiente) {
       suerte: 0.0,
       victoria:
           'Los huesos del esqueleto se desmoronan.\nEl camino queda libre.',
-      image: 'lib/fotos/esqueleto.jpg',
     ),
     (
       nombre: 'Un goblin',
@@ -207,7 +230,6 @@ Carta _encuentroEnemigoCombate(GameState s, Carta siguiente) {
       dano: 6.0,
       suerte: 0.0,
       victoria: 'El goblin chilla y se desploma.\nHas salido victorioso.',
-      image: 'lib/fotos/goblin.jpg',
     ),
     (
       nombre: 'Un slime',
@@ -216,7 +238,6 @@ Carta _encuentroEnemigoCombate(GameState s, Carta siguiente) {
       dano: 5.0,
       suerte: 10.0,
       victoria: 'El slime se disuelve en el suelo.\nYa no bloquea el paso.',
-      image: 'lib/fotos/slime.jpg',
     ),
     (
       nombre: 'Una araña',
@@ -225,7 +246,6 @@ Carta _encuentroEnemigoCombate(GameState s, Carta siguiente) {
       dano: 7.0,
       suerte: 10.0,
       victoria: 'La araña cae retorciendose.\nSu veneno ya no te alcanzara.',
-      image: 'lib/fotos/araña.jpg',
     ),
   ];
 
@@ -236,6 +256,7 @@ Carta _encuentroEnemigoCombate(GameState s, Carta siguiente) {
   final e = datos[idx];
   final cartaVictoria = _victoriaEnemigo(
     texto: e.victoria,
+    imagen: e.imagen,
     siguiente: siguiente,
     deltaSuerte: e.suerte,
   );
@@ -247,16 +268,6 @@ Carta _encuentroEnemigoCombate(GameState s, Carta siguiente) {
     onVictoria: cartaVictoria,
   );
 }
-
-// ── Carta de continuación tras encuentro aleatorio ────────────────────────────
-
-final _cartaContinuar = Carta(
-  texto: 'El enemigo ha caido.\nSigues tu camino.',
-  opcionIzquierda: 'Continuar',
-  opcionDerecha: 'Continuar',
-  efectoIzquierda: (_) => const Consecuencia(deltaTiempo: -3),
-  efectoDerecha: (_) => const Consecuencia(deltaTiempo: -3),
-);
 
 // ── Historia de la mazmorra ───────────────────────────────────────────────────
 
@@ -279,7 +290,7 @@ Carta _nigromanteRonda() => Carta(
   opcionIzquierda: 'Golpe normal',
   opcionDerecha: 'Golpe critico',
   efectoIzquierda: (s) {
-    final danio = (s.poder * 1.0).clamp(5.0, 35.0);
+    final danio = s.poder;
     s.enemyVida = (s.enemyVida! - danio).clamp(0.0, s.enemyMaxVida!);
     if (s.enemyVida! <= 0) {
       s.enemyVida = null;
@@ -290,7 +301,7 @@ Carta _nigromanteRonda() => Carta(
       );
     }
     return Consecuencia(
-      deltaVida: -8,
+      deltaVida: -6,
       deltaTiempo: -5,
       onApply: (st) => _ir(st, _nigromanteRonda()),
     );
@@ -298,7 +309,7 @@ Carta _nigromanteRonda() => Carta(
   efectoDerecha: (s) {
     final exito = _conSuerte(s, 0.35);
     if (exito) {
-      final danio = (s.poder * 2.0).clamp(15.0, 60.0);
+      final danio = s.poder * 2;
       s.enemyVida = (s.enemyVida! - danio).clamp(0.0, s.enemyMaxVida!);
       if (s.enemyVida! <= 0) {
         s.enemyVida = null;
@@ -342,17 +353,17 @@ final _cartaInicioNigromante = Carta(
   opcionIzquierda: 'Prepararse',
   opcionDerecha: 'Atacar de inmediato',
   efectoIzquierda: (s) {
-    s.enemyVida = 60;
-    s.enemyMaxVida = 60;
+    s.enemyVida = 40;
+    s.enemyMaxVida = 40;
     return Consecuencia(
       deltaTiempo: -3,
       onApply: (st) => _ir(st, _nigromanteRonda()),
     );
   },
   efectoDerecha: (s) {
-    s.enemyVida = 60;
-    s.enemyMaxVida = 60;
-    s.enemyVida = (s.enemyVida! - 15).clamp(0.0, 60.0);
+    s.enemyVida = 40;
+    s.enemyMaxVida = 40;
+    s.enemyVida = (s.enemyVida! - 15).clamp(0.0, 40.0);
     return Consecuencia(
       deltaVida: -5,
       deltaTiempo: -3,
@@ -469,34 +480,6 @@ final Carta _cartaPasilloOscuro = Carta(
   ),
 );
 
-final _cartaMimico = Carta(
-  imagen: 'lib/fotos/mimico.jpg',
-  texto: 'El cofre tiene dientes.\nEs un mímico.',
-  opcionIzquierda: 'Intentar huir',
-  opcionDerecha: 'Luchar',
-  efectoIzquierda: (s) => Consecuencia(
-    deltaVida: -10,
-    deltaTiempo: -10,
-    onApply: (st) => _ir(st, _cartaPasilloOscuro),
-  ),
-  efectoDerecha: (s) => Consecuencia(
-    deltaTiempo: -3,
-    onApply: (st) => _ir(
-      st,
-      _iniciarCombate(
-        nombre: 'El mímico',
-        imagen: 'lib/fotos/mimico.jpg',
-        vida: 35,
-        dano: 12,
-        onVictoria: _victoriaEnemigo(
-          texto: 'El mímico se desmorona.\nEl cofre era una trampa.',
-          siguiente: _cartaPasilloOscuro,
-        ),
-      ),
-    ),
-  ),
-);
-
 Carta _cartaCofreAbierto({required bool esSuerte}) => Carta(
   imagen: 'lib/fotos/cofre pocion.jpg',
   texto: esSuerte
@@ -505,13 +488,22 @@ Carta _cartaCofreAbierto({required bool esSuerte}) => Carta(
   opcionIzquierda: 'Beber',
   opcionDerecha: 'Beber',
   efectoIzquierda: (s) => Consecuencia(
-    deltaSuerte: esSuerte ? 10 : 0,
+    deltaSuerte: esSuerte
+        ? 10
+        : 0, //esto es para que si es buen cofre ganes suerte
+    deltaVida: esSuerte
+        ? 0
+        : -5, //esto es para que si no es buen cofre no ganes vida
     deltaTiempo: -3,
     onApply: (st) => _ir(st, _encuentroEnemigoCombate(st, _cartaPasilloOscuro)),
   ),
   efectoDerecha: (s) => Consecuencia(
-    deltaSuerte: esSuerte ? 10 : 0,
-    deltaPoder: esSuerte ? 0 : -8,
+    deltaSuerte: esSuerte
+        ? 10
+        : 0, //esto es para que si es buen cofre ganes suerte
+    deltaPoder: esSuerte
+        ? 0
+        : -8, //esto es para que si no es buen cofre te quite poder
     deltaTiempo: -3,
     onApply: (st) => _ir(st, _encuentroEnemigoCombate(st, _cartaPasilloOscuro)),
   ),
@@ -536,7 +528,20 @@ final _cartaCofre = Carta(
     }
     return Consecuencia(
       deltaTiempo: -3,
-      onApply: (st) => _ir(st, _cartaMimico),
+      onApply: (st) => _ir(
+        st,
+        _iniciarCombate(
+          nombre: 'El mímico',
+          imagen: 'lib/fotos/mimico.jpg',
+          vida: 35,
+          dano: 12,
+          onVictoria: _victoriaEnemigo(
+            texto: 'El mímico se desmorona.\nEl cofre era una trampa.',
+            imagen: 'lib/fotos/mimico.jpg',
+            siguiente: _cartaPasilloOscuro,
+          ),
+        ),
+      ),
     );
   },
 );
@@ -655,7 +660,7 @@ Carta drawRandomEnemy() {
           'Los huesos del esqueleto se desmoronan.\nEl camino queda libre',
     ),
     (
-      nombre: 'Goblin ',
+      nombre: 'Goblin',
       imagen: 'lib/fotos/goblin.jpg',
       vida: 35.0,
       dano: 6.0,
@@ -687,7 +692,7 @@ Carta drawRandomEnemy() {
     dano: e.dano,
     onVictoria: _victoriaEnemigo(
       texto: e.victoria,
-      siguiente: _cartaContinuar,
+      imagen: e.imagen,
       deltaSuerte: e.suerte,
     ),
   );
