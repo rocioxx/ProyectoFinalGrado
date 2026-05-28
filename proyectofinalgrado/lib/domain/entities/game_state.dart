@@ -23,6 +23,7 @@ class GameState {
     this.aventureroEncontrado = false,
     this.puertaFinalAlcanzada = false,
     List<int>? enemyQueue,
+    this.abGroup = 'A',
   }) : enemyQueue = enemyQueue ?? [];
 
   double vida;
@@ -50,4 +51,5 @@ class GameState {
   bool aventureroEncontrado;
   bool puertaFinalAlcanzada;
   List<int> enemyQueue;
+  String abGroup;
 }

@@ -38,10 +38,8 @@ class _PlayScreenState extends State<PlayScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    final titleSize = (size.width * 0.13).clamp(34.0, 56.0);
-    final subtitleSize = (size.width * 0.04).clamp(13.0, 18.0);
-    final btnWidth = (size.width * 0.55).clamp(160.0, 240.0);
-    final topSpacing = size.height * 0.07;
+    final logoWidth = (size.width * 0.82).clamp(260.0, 420.0);
+    final topSpacing = size.height * 0.12;
     final bottomSpacing = size.height * 0.06;
 
     return Scaffold(
@@ -72,41 +70,28 @@ class _PlayScreenState extends State<PlayScreen> {
               children: [
                 SizedBox(height: topSpacing),
 
-                SizedBox(height: size.height * 0.012),
+                SizedBox(height: size.height * 0.016),
                 Image.asset(
-                  'lib/fotos/inicio.png', //esta imagen aparece a la mitad de la pantalla y se ve muy grande
-                  width: btnWidth,
-                  height: 600,
+                  'lib/fotos/inicio.png',
+                  width: logoWidth,
+                  height: size.height * 0.50,
                   alignment: Alignment.topCenter,
                   fit: BoxFit.contain,
                 ),
 
-                Text(
-                  'Entrar a la mazmorra',
-                  style: TextStyle(
-                    fontFamily: 'Inconsolata',
-                    fontSize: subtitleSize,
-                    fontStyle: FontStyle.italic,
-                    color: const Color(0xFFB8A070),
-                    letterSpacing: 1.5,
-                    shadows: const [
-                      Shadow(color: Colors.black, blurRadius: 12),
-                    ],
-                  ),
-                ),
-
-                const Spacer(),
-
-                // Botón abajo
+                // Botón abajo — altura fija para que no cambie de posición
                 GestureDetector(
                   onTap: () => Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
                   ),
-                  child: Image.asset(
-                    'lib/fotos/entrar.png',
-                    width: btnWidth,
-                    fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: (size.width * 0.90).clamp(280.0, 460.0),
+                    height: (size.height * 0.20).clamp(120.0, 200.0),
+                    child: Image.asset(
+                      'lib/fotos/entrar.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
 

@@ -31,7 +31,7 @@ class GameCubit extends Cubit<GameUiState> {
     final abGroup = AnalyticsService.assignAbGroup();
     final analytics = AnalyticsService(sessionId: sessionId, abGroup: abGroup);
 
-    final state = GameState();
+    final state = GameState(abGroup: abGroup);
     analytics.gameStarted();
 
     return GameCubit._(

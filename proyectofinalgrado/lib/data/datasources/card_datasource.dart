@@ -503,7 +503,7 @@ final _cartaCofre = Carta(
     onApply: (st) => _ir(st, _encuentroEnemigoCombate(st, _cartaPasilloOscuro)),
   ),
   efectoDerecha: (s) {
-    if (_conSuerte(s, 0.5)) {
+    if (_conSuerte(s, s.abGroup == 'B' ? 0.70 : 0.50)) {
       // Poción: random entre quitar poder o dar suerte
       final esSuerte = _rng.nextBool();
       return Consecuencia(
@@ -521,18 +521,18 @@ final _cartaCofre = Carta(
   },
 );
 
-// Victoria del aventurero: otorga poder y continúa con un encuentro enemigo
+// Victoria del aventurero: otorga vida y continua con un encuentro enemigo
 final _cartaVictoriaAventurero = Carta(
   texto: 'Has derrotado al aventurero.\nSigues adelante.',
   opcionIzquierda: 'Continuar',
   opcionDerecha: 'Continuar',
   efectoIzquierda: (s) => Consecuencia(
-    deltaPoder: 10,
+    deltaVida: 10,
     deltaTiempo: -5,
     onApply: (st) => _ir(st, _encuentroEnemigoCombate(st, _cartaPasilloOscuro)),
   ),
   efectoDerecha: (s) => Consecuencia(
-    deltaPoder: 10,
+    deltaVida: 10,
     deltaTiempo: -5,
     onApply: (st) => _ir(st, _encuentroEnemigoCombate(st, _cartaPasilloOscuro)),
   ),
