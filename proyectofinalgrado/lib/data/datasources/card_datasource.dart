@@ -140,7 +140,10 @@ Carta _iniciarCombate({
     s.enemyVida = vida;
     s.enemyMaxVida = vida;
     if (_conSuerte(s, 0.5)) {
-      s.enemyVida = (s.enemyVida! - 12).clamp(0.0, s.enemyMaxVida!);
+      s.enemyVida = (s.enemyVida! - 12).clamp(
+        0.0,
+        s.enemyMaxVida!,
+      ); // el numero de daño que hace es fijo 12 por cada golpe
       if (s.enemyVida! <= 0) {
         s.enemyVida = null;
         s.enemyMaxVida = null;
@@ -648,6 +651,8 @@ void _ensureInited() {
 
 // ── API pública ───────────────────────────────────────────────────────────────
 
+int? _lastEnemyIndex;
+
 Carta drawRandomEnemy() {
   const datos = [
     (
@@ -684,7 +689,12 @@ Carta drawRandomEnemy() {
       victoria: 'La araña cae retorciendose.\nSu veneno ya no te alcanzara',
     ),
   ];
-  final e = datos[_rng.nextInt(datos.length)];
+  int idx;
+  do {
+    idx = _rng.nextInt(datos.length);
+  } while (datos.length > 1 && idx == _lastEnemyIndex);
+  _lastEnemyIndex = idx;
+  final e = datos[idx];
   return _iniciarCombate(
     nombre: e.nombre,
     imagen: e.imagen,
