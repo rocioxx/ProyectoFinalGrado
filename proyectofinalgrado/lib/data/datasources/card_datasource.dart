@@ -12,7 +12,11 @@ void _ir(GameState s, Carta c) => s.cartaPendiente = c;
 // ── Helpers de probabilidad ───────────────────────────────────────────────────
 
 bool _conSuerte(GameState s, double base) =>
-    _rng.nextDouble() < (base + (s.suerte - 50) * 0.008).clamp(0.0, 1.0);
+    _rng.nextDouble() <
+    (base + (s.suerte - 50) * 0.008).clamp(
+      0.0,
+      1.0,
+    ); // esto es para que si tienes mas suerte, tengas mas probabilidad de tener exito en algo
 
 // ── Carta narrativa de victoria ───────────────────────────────────────────────
 
@@ -56,7 +60,8 @@ Carta _rondaCombate({
   opcionIzquierda: 'Esquivar',
   opcionDerecha: 'Atacar',
   efectoIzquierda: (s) {
-    if (_conSuerte(s, 0.5)) {
+    if (_conSuerte(s, 0.3)) {
+      //probabilidad de esquivar al enemigo
       s.enemyVida = (s.enemyVida! - 12).clamp(0.0, s.enemyMaxVida!);
       if (s.enemyVida! <= 0) {
         s.enemyVida = null;
@@ -139,7 +144,8 @@ Carta _iniciarCombate({
   efectoIzquierda: (s) {
     s.enemyVida = vida;
     s.enemyMaxVida = vida;
-    if (_conSuerte(s, 0.5)) {
+    if (_conSuerte(s, 0.3)) {
+      //esto es para que esquives con una probabilidad de 0.3 o 30% por tu suerte base
       s.enemyVida = (s.enemyVida! - 12).clamp(
         0.0,
         s.enemyMaxVida!,
@@ -608,6 +614,13 @@ final _cartaEntrada = Carta(
   imagen: 'lib/fotos/puerta principio.jpg',
   saltable: false,
   texto: 'Entras a la mazmorra.\nLa puerta se cierra detras de ti.',
+  nota: (_) =>
+      'COMO JUGAR\n\n'
+      'Desliza la carta a la IZQUIERDA\n'
+      'o a la DERECHA para elegir.\n\n'
+      'Los textos en los bordes te adelantan\n'
+      'qué pasará en cada dirección.\n\n'
+      '¡Buena suerte, aventurero!',
   opcionIzquierda: 'Entrar por la izquierda',
   opcionDerecha: 'Entrar por la derecha',
   efectoIzquierda: (s) => Consecuencia(
