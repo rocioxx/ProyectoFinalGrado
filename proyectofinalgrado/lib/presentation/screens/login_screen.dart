@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/sound_settings.dart';
 import '../../data/datasources/auth_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/usecases/check_email_usecase.dart';
@@ -102,6 +103,24 @@ class _LoginViewState extends State<_LoginView> {
               ),
             ),
           ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: SafeArea(
+              child: ValueListenableBuilder<bool>(
+                valueListenable: SoundSettings.sonidoActivo,
+                builder: (_, activo, _) => IconButton(
+                  icon: Icon(
+                    activo ? Icons.volume_up : Icons.volume_off,
+                    color: const Color(0xFFD4AF37),
+                    size: 28,
+                  ),
+                  onPressed: () => SoundSettings.sonidoActivo.value = !activo,
+                ),
+              ),
+            ),
+          ),
+
           SafeArea(
             child: Center(
               child: ConstrainedBox(

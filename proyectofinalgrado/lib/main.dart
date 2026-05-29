@@ -1,9 +1,20 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'presentation/screens/play_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  AudioPlayer.global.setAudioContext(AudioContext(
+    android: AudioContextAndroid(
+      audioFocus: AndroidAudioFocus.none,
+      contentType: AndroidContentType.music,
+      usageType: AndroidUsageType.media,
+      isSpeakerphoneOn: false,
+      stayAwake: false,
+    ),
+  ));
 
   await Supabase.initialize(
     url: 'https://qatjobztluikjbapbvgv.supabase.co',

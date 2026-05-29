@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import '../../core/audio/music_service.dart';
+import '../../core/sound_settings.dart';
 import 'login_screen.dart';
 
 class PlayScreen extends StatefulWidget {
@@ -16,6 +18,9 @@ class _PlayScreenState extends State<PlayScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) MusicService.instance.start();
+    });
     _ctrl = VideoPlayerController.asset('lib/fotos/portada_video.mp4')
       ..setLooping(true)
       ..setVolume(0);
@@ -58,6 +63,27 @@ class _PlayScreenState extends State<PlayScreen> {
                   width: _videoReady ? _ctrl.value.size.width : 1,
                   height: _videoReady ? _ctrl.value.size.height : 1,
                   child: _videoReady ? VideoPlayer(_ctrl) : const SizedBox(),
+                ),
+              ),
+            ),
+          ),
+
+          // ── Botón música ─────────────────────────────────────────────────
+          Positioned(
+            top: 16,
+            right: 16,
+            child: SafeArea(
+              child: ValueListenableBuilder<bool>(
+                valueListenable: SoundSettings.sonidoActivo,
+                builder: (_, activo, _) => IconButton(
+                  icon: Icon(
+                    activo ? Icons.volume_up : Icons.volume_off,
+                    color: const Color(0xFFD4AF37),
+                    size: 28,
+                  ),
+                  onPressed: () {
+                    SoundSettings.sonidoActivo.value = !activo;
+                  },
                 ),
               ),
             ),

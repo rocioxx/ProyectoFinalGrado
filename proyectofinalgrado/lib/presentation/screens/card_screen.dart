@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import '../../core/audio/music_service.dart';
+import '../../core/sound_settings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/ads/ad_service.dart';
 import '../../data/repositories/game_repository_impl.dart';
@@ -53,7 +55,6 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
   final _adService = AdService();
   int _ruletasRestantes = 2;
 
-  final _bgPlayer  = AudioPlayer();
   final _sfxPlayer = AudioPlayer()..setVolume(0.7);
 
   bool _notaVisible = true;
@@ -165,9 +166,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     _adService.init().then((_) => _adService.load());
 
     // Música de fondo en bucle
-    _bgPlayer.setReleaseMode(ReleaseMode.loop);
-    _bgPlayer.setVolume(0.7);
-    _bgPlayer.play(AssetSource('sonidos/backgroundmusic.mp3'));
+    _initMusic();
 
     // Animación de entrada al cargar la pantalla por primera vez
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -181,13 +180,18 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _bgPlayer.dispose();
     _sfxPlayer.dispose();
     _exitCtrl.dispose();
     _enterCtrl.dispose();
     _returnCtrl.dispose();
     _spinCtrl.dispose();
     super.dispose();
+  }
+
+  void _initMusic() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) MusicService.instance.start();
+    });
   }
 
   Future<void> _returnToCenter() async {
@@ -229,7 +233,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
       end: dir * 0.5,
     ).animate(CurvedAnimation(parent: _exitCtrl, curve: Curves.easeIn));
 
-    _sfxPlayer.play(AssetSource('sonidos/cardflip.ogg'));
+    if (SoundSettings.efectosActivos.value) _sfxPlayer.play(AssetSource('sonidos/cardflip.ogg'));
     setState(() => _phase = _Phase.exiting);
     await _exitCtrl.forward(from: 0);
     _exitCtrl.reset();
@@ -241,8 +245,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     final newState = cubit.state;
 
     if (newState is GameVictoryState) {
-      _bgPlayer.stop();
-      _sfxPlayer.play(AssetSource('sonidos/win.mp3'));
+      if (SoundSettings.efectosActivos.value) _sfxPlayer.play(AssetSource('sonidos/win.mp3'));
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -252,8 +255,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     }
 
     if (newState is GameOverState) {
-      _bgPlayer.stop();
-      _sfxPlayer.play(AssetSource('sonidos/lose.wav'));
+      if (SoundSettings.efectosActivos.value) _sfxPlayer.play(AssetSource('sonidos/lose.wav'));
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -301,7 +303,7 @@ class _CardViewState extends State<_CardView> with TickerProviderStateMixin {
     setState(() => _ruletasRestantes--);
 
     // Giro horizontal en el eje Y
-    _sfxPlayer.play(AssetSource('sonidos/cardflip.ogg'));
+    if (SoundSettings.efectosActivos.value) _sfxPlayer.play(AssetSource('sonidos/cardflip.ogg'));
     setState(() => _phase = _Phase.spinning);
     await _spinCtrl.forward(from: 0);
     _spinCtrl.reset();
